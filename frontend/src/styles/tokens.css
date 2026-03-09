@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+:root {
+  --font-ui: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+  --bg: radial-gradient(circle at 10% 15%, #294f49 0%, #0c1f1c 55%, #091412 100%);
+  --card-bg: rgba(242, 232, 213, 0.09);
+  --card-border: rgba(242, 232, 213, 0.25);
+  --text: #f9f6ee;
+  --muted: #d1c7b4;
+  --brand: #d17842;
+  --ok: #4caf7a;
+  --warn: #e3b24e;
+  --danger: #db5f5f;
+}
+
+:root[data-theme='low-stim'] {
+  --bg: linear-gradient(180deg, #16201f 0%, #0f1716 100%);
+  --card-bg: rgba(255, 255, 255, 0.06);
+  --card-border: rgba(255, 255, 255, 0.16);
+  --text: #f6f6f2;
+  --muted: #c8cdc8;
+  --brand: #8aab98;
+}

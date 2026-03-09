@@ -1,0 +1,25 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: care-os-backend
+    environment:
+      CARE_OS_DATABASE_URL: sqlite:////app/data/care_os.db
+      CARE_OS_FORCE_RULE_FALLBACK: "false"
+      CARE_OS_EMBEDDING_PROVIDER: hash
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/seed:/app/seed
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: care-os-frontend
+    depends_on:
+      - backend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000/api
+    ports:
+      - "4173:4173"

@@ -1,0 +1,5002 @@
+[
+  {
+    "id": "CARD-0001",
+    "title": "过渡策略卡 01",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0002",
+    "title": "过渡策略卡 02",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "low",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0003",
+    "title": "过渡策略卡 03",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0004",
+    "title": "过渡策略卡 04",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0005",
+    "title": "过渡策略卡 05",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0006",
+    "title": "过渡策略卡 06",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "low",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0007",
+    "title": "过渡策略卡 07",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0008",
+    "title": "过渡策略卡 08",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "low",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0009",
+    "title": "过渡策略卡 09",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0010",
+    "title": "过渡策略卡 10",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0011",
+    "title": "过渡策略卡 11",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0012",
+    "title": "过渡策略卡 12",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "low",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0013",
+    "title": "过渡策略卡 13",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0014",
+    "title": "过渡策略卡 14",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "low",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0015",
+    "title": "过渡策略卡 15",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0016",
+    "title": "过渡策略卡 16",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0017",
+    "title": "过渡策略卡 17",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0018",
+    "title": "过渡策略卡 18",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "low",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0019",
+    "title": "过渡策略卡 19",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0020",
+    "title": "过渡策略卡 20",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "low",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0021",
+    "title": "过渡策略卡 21",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0022",
+    "title": "过渡策略卡 22",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0023",
+    "title": "过渡策略卡 23",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0024",
+    "title": "过渡策略卡 24",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "low",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0025",
+    "title": "过渡策略卡 25",
+    "scenario_tags": [
+      "transition",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 过渡切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：过渡准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0026",
+    "title": "睡前策略卡 01",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "high",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0027",
+    "title": "睡前策略卡 02",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "low",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0028",
+    "title": "睡前策略卡 03",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "high",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0029",
+    "title": "睡前策略卡 04",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "low",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0030",
+    "title": "睡前策略卡 05",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "high",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0031",
+    "title": "睡前策略卡 06",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0032",
+    "title": "睡前策略卡 07",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "high",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0033",
+    "title": "睡前策略卡 08",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "low",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0034",
+    "title": "睡前策略卡 09",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "high",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0035",
+    "title": "睡前策略卡 10",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "low",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0036",
+    "title": "睡前策略卡 11",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "high",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0037",
+    "title": "睡前策略卡 12",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0038",
+    "title": "睡前策略卡 13",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "high",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0039",
+    "title": "睡前策略卡 14",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "low",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0040",
+    "title": "睡前策略卡 15",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "high",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0041",
+    "title": "睡前策略卡 16",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "low",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0042",
+    "title": "睡前策略卡 17",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "high",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0043",
+    "title": "睡前策略卡 18",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0044",
+    "title": "睡前策略卡 19",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "high",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0045",
+    "title": "睡前策略卡 20",
+    "scenario_tags": [
+      "bedtime",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 睡前切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：睡前准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "low",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0046",
+    "title": "作业策略卡 01",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0047",
+    "title": "作业策略卡 02",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0048",
+    "title": "作业策略卡 03",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "low",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0049",
+    "title": "作业策略卡 04",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0050",
+    "title": "作业策略卡 05",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "low",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0051",
+    "title": "作业策略卡 06",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0052",
+    "title": "作业策略卡 07",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0053",
+    "title": "作业策略卡 08",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0054",
+    "title": "作业策略卡 09",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "low",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0055",
+    "title": "作业策略卡 10",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0056",
+    "title": "作业策略卡 11",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "low",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0057",
+    "title": "作业策略卡 12",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0058",
+    "title": "作业策略卡 13",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0059",
+    "title": "作业策略卡 14",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0060",
+    "title": "作业策略卡 15",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "low",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0061",
+    "title": "作业策略卡 16",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0062",
+    "title": "作业策略卡 17",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "low",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0063",
+    "title": "作业策略卡 18",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0064",
+    "title": "作业策略卡 19",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0065",
+    "title": "作业策略卡 20",
+    "scenario_tags": [
+      "homework",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 作业切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：作业准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0066",
+    "title": "外出策略卡 01",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0067",
+    "title": "外出策略卡 02",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "high",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0068",
+    "title": "外出策略卡 03",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0069",
+    "title": "外出策略卡 04",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "high",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0070",
+    "title": "外出策略卡 05",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0071",
+    "title": "外出策略卡 06",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "high",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0072",
+    "title": "外出策略卡 07",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0073",
+    "title": "外出策略卡 08",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "high",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0074",
+    "title": "外出策略卡 09",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0075",
+    "title": "外出策略卡 10",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "high",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0076",
+    "title": "外出策略卡 11",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0077",
+    "title": "外出策略卡 12",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "high",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0078",
+    "title": "外出策略卡 13",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0079",
+    "title": "外出策略卡 14",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "4-6",
+        "7-9"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "high",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0080",
+    "title": "外出策略卡 15",
+    "scenario_tags": [
+      "outing",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "10-12",
+        "0-3"
+      ],
+      "language_levels": [
+        "fluent",
+        "none"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 外出切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：外出准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0081",
+    "title": "感官策略卡 01",
+    "scenario_tags": [
+      "sensory",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 感官切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：感官准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "high",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0082",
+    "title": "感官策略卡 02",
+    "scenario_tags": [
+      "sensory",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 感官切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：感官准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0083",
+    "title": "感官策略卡 03",
+    "scenario_tags": [
+      "sensory",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 感官切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：感官准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "high",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0084",
+    "title": "感官策略卡 04",
+    "scenario_tags": [
+      "sensory",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 感官切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：感官准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0085",
+    "title": "感官策略卡 05",
+    "scenario_tags": [
+      "sensory",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 感官切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：感官准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "high",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0086",
+    "title": "感官策略卡 06",
+    "scenario_tags": [
+      "sensory",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 感官切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：感官准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0087",
+    "title": "感官策略卡 07",
+    "scenario_tags": [
+      "sensory",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 感官切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：感官准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "high",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0088",
+    "title": "感官策略卡 08",
+    "scenario_tags": [
+      "sensory",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 感官切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：感官准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0089",
+    "title": "感官策略卡 09",
+    "scenario_tags": [
+      "sensory",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 感官切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：感官准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "high",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0090",
+    "title": "感官策略卡 10",
+    "scenario_tags": [
+      "sensory",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "none",
+        "single_word"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 感官切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：感官准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0091",
+    "title": "微喘息策略卡 01",
+    "scenario_tags": [
+      "respite",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "short_sentence",
+        "fluent"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 微喘息切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：微喘息准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0092",
+    "title": "微喘息策略卡 02",
+    "scenario_tags": [
+      "respite",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "short_sentence",
+        "fluent"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 微喘息切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：微喘息准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "low",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0093",
+    "title": "微喘息策略卡 03",
+    "scenario_tags": [
+      "respite",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "short_sentence",
+        "fluent"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 微喘息切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：微喘息准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0094",
+    "title": "微喘息策略卡 04",
+    "scenario_tags": [
+      "respite",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "short_sentence",
+        "fluent"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 微喘息切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：微喘息准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0095",
+    "title": "微喘息策略卡 05",
+    "scenario_tags": [
+      "respite",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "short_sentence",
+        "fluent"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 微喘息切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：微喘息准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "medium",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0096",
+    "title": "微喘息策略卡 06",
+    "scenario_tags": [
+      "respite",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "short_sentence",
+        "fluent"
+      ],
+      "sensory": [
+        "light",
+        "touch"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 微喘息切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：微喘息准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "low",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0097",
+    "title": "微喘息策略卡 07",
+    "scenario_tags": [
+      "respite",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "short_sentence",
+        "fluent"
+      ],
+      "sensory": [
+        "touch",
+        "crowd"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 微喘息切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：微喘息准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "medium",
+    "evidence_tag": "expert"
+  },
+  {
+    "id": "CARD-0098",
+    "title": "微喘息策略卡 08",
+    "scenario_tags": [
+      "respite",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "short_sentence",
+        "fluent"
+      ],
+      "sensory": [
+        "crowd",
+        "smell"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 微喘息切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：微喘息准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "high",
+    "risk_level": "low",
+    "evidence_tag": "practice"
+  },
+  {
+    "id": "CARD-0099",
+    "title": "微喘息策略卡 09",
+    "scenario_tags": [
+      "respite",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "0-3",
+        "4-6"
+      ],
+      "language_levels": [
+        "short_sentence",
+        "fluent"
+      ],
+      "sensory": [
+        "smell",
+        "sound"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 微喘息切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：微喘息准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "low",
+    "risk_level": "medium",
+    "evidence_tag": "evidence"
+  },
+  {
+    "id": "CARD-0100",
+    "title": "微喘息策略卡 10",
+    "scenario_tags": [
+      "respite",
+      "low_stim",
+      "asdhack"
+    ],
+    "applicable_conditions": {
+      "age_bands": [
+        "7-9",
+        "10-12"
+      ],
+      "language_levels": [
+        "short_sentence",
+        "fluent"
+      ],
+      "sensory": [
+        "sound",
+        "light"
+      ],
+      "intensity": [
+        "light",
+        "medium",
+        "heavy"
+      ]
+    },
+    "steps": [
+      "步骤1：提前 2 分钟预告 微喘息切换。",
+      "步骤2：给两个可行选项，允许 5 秒等待。",
+      "步骤3：完成后立即低刺激强化并记录。"
+    ],
+    "scripts": {
+      "parent": "我看到你现在有点难，我们先做第一步：微喘息准备。",
+      "teacher": "请先给两步以内指令，完成后马上强化。"
+    },
+    "donts": [
+      "不要强拉身体",
+      "不要连续追问",
+      "不要突然提高音量"
+    ],
+    "escalate_when": [
+      "持续升级超过10分钟",
+      "出现明显自伤/他伤风险",
+      "无法通过降刺激恢复"
+    ],
+    "cost_level": "medium",
+    "risk_level": "low",
+    "evidence_tag": "expert"
+  }
+]
