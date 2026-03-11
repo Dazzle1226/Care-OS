@@ -41,6 +41,30 @@ def _next_hint(score: int) -> str:
     return "下次会降低这类建议权重，优先切换到更低刺激或更可交接的方案。"
 
 
+def _child_state_after(effectiveness: str) -> str:
+    return {
+        "helpful": "settled",
+        "somewhat": "partly_settled",
+        "not_helpful": "still_escalating",
+    }[effectiveness]
+
+
+def _caregiver_state_after(effectiveness: str, matched_expectation: bool) -> str:
+    if effectiveness == "helpful":
+        return "calmer"
+    if effectiveness == "somewhat" or matched_expectation:
+        return "same"
+    return "more_overloaded"
+
+
+def _recommendation(score: int) -> str:
+    if score >= 1:
+        return "continue"
+    if score == 0:
+        return "pause"
+    return "replace"
+
+
 @router.post("/generate", response_model=MicroRespiteGenerateResponse)
 def generate_micro_respite(
     payload: MicroRespiteGenerateRequest,
@@ -99,6 +123,9 @@ def submit_micro_respite_feedback(
         family_id=payload.family_id,
         card_ids=payload.source_card_ids,
         outcome_score=score,
+        child_state_after=_child_state_after(payload.effectiveness),
+        caregiver_state_after=_caregiver_state_after(payload.effectiveness, payload.matched_expectation),
+        recommendation=_recommendation(score),
         notes=payload.notes,
         followup_action=next_hint,
     )

@@ -28,6 +28,7 @@ def test_onboarding_and_profile_update_should_store_detailed_context() -> None:
             "diagnosis_status": "asd",
             "diagnosis_notes": "医生提示伴焦虑反应。",
             "communication_level": "short_sentence",
+            "core_difficulties": ["过渡困难", "外出困难"],
             "coexisting_conditions": ["焦虑"],
             "family_members": ["妈妈", "爸爸", "奶奶"],
             "interests": ["地铁", "拼图"],
@@ -55,6 +56,10 @@ def test_onboarding_and_profile_update_should_store_detailed_context() -> None:
             "parent_support_actions": ["家长支持群"],
             "parent_emotional_supports": ["伴侣倾听"],
             "available_supporters": ["配偶"],
+            "supporter_availability": ["工作日晚上"],
+            "supporter_independent_care": "needs_handoff",
+            "major_incident_notes": "商场排队时曾升级到躺地哭闹。",
+            "emergency_contacts": ["外婆 138xxxx"],
             "taboo_behaviors": "不要突然拉走",
         }
 
@@ -65,6 +70,7 @@ def test_onboarding_and_profile_update_should_store_detailed_context() -> None:
 
         assert created["family"]["name"] == "晨晨一家"
         assert created["profile"]["school_context"]["family_members"] == ["妈妈", "爸爸", "奶奶"]
+        assert created["profile"]["school_context"]["core_difficulties"] == ["过渡困难", "外出困难"]
         assert created["profile"]["school_context"]["medications"] == ["药物 A 5mg / 晚"]
         assert created["snapshot"]["health_summary"]
         assert created["snapshot"]["behavior_summary"]
@@ -75,6 +81,7 @@ def test_onboarding_and_profile_update_should_store_detailed_context() -> None:
             "family_name": "晨晨一家（更新）",
             "interests": ["地铁", "拼图", "画画"],
             "available_supporters": ["配偶", "外婆"],
+            "supporter_availability": ["工作日晚上", "周末"],
             "parent_support_actions": ["家长支持群", "周末有人接手"],
         }
         update_response = client.post("/api/profile", json=update_payload, headers=headers)
@@ -87,4 +94,5 @@ def test_onboarding_and_profile_update_should_store_detailed_context() -> None:
         assert refreshed["family"]["name"] == "晨晨一家（更新）"
         assert refreshed["profile"]["school_context"]["interests"] == ["地铁", "拼图", "画画"]
         assert refreshed["profile"]["school_context"]["available_supporters"] == ["配偶", "外婆"]
+        assert refreshed["profile"]["school_context"]["supporter_availability"] == ["工作日晚上", "周末"]
         assert refreshed["snapshot"]["supporter_summary"] == ["配偶", "外婆"]

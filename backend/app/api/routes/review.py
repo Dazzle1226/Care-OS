@@ -9,8 +9,13 @@ from sqlalchemy.orm import Session
 from app.agents.coach import CoachAgent
 from app.api.deps import get_current_user
 from app.db.base import get_db
-from app.models import IncidentLog, Review, User
+from app.models import IncidentLog, Review, StrategyCard, User
 from app.schemas.domain import ReplayResponse, ReviewCreate, ReviewResponse
+from app.services.review_learning import (
+    build_followup_action,
+    build_replay_response,
+    normalize_review_card_ids,
+)
 
 router = APIRouter(tags=["review"])
 
@@ -40,10 +45,19 @@ def create_review(
     review = Review(
         incident_id=incident_id,
         family_id=payload.family_id,
-        card_ids=payload.card_ids,
+        card_ids=normalize_review_card_ids(payload.card_ids, payload.scenario),
         outcome_score=payload.outcome_score,
+        child_state_after=payload.child_state_after,
+        caregiver_state_after=payload.caregiver_state_after,
+        recommendation=payload.recommendation,
+        response_action=payload.response_action.strip(),
         notes=payload.notes,
-        followup_action=payload.followup_action,
+        followup_action=build_followup_action(
+            recommendation=payload.recommendation,
+            child_state_after=payload.child_state_after,
+            caregiver_state_after=payload.caregiver_state_after,
+            followup_action=payload.followup_action,
+        ),
     )
     db.add(review)
     db.flush()
@@ -68,15 +82,10 @@ def get_replay(
         select(Review).where(Review.incident_id == incident_id).order_by(Review.created_at.desc()).limit(1)
     )
 
-    timeline = [
-        f"触发器: {', '.join(incident.triggers) if incident.triggers else '未记录'}",
-        f"策略卡: {', '.join(review.card_ids) if review else '未复盘'}",
-        f"效果: {review.outcome_score if review else 'N/A'}",
-        f"下次改进: {review.followup_action if review and review.followup_action else '保持低刺激并缩短指令'}",
-    ]
+    if review is None:
+        raise HTTPException(status_code=404, detail="Replay not found")
 
-    return ReplayResponse(
-        incident_id=incident_id,
-        timeline=timeline,
-        next_improvement=timeline[-1].split(": ", 1)[1],
-    )
+    card_ids = {card_id for card_id in review.card_ids if not card_id.startswith("manual:")}
+    cards = db.scalars(select(StrategyCard).where(StrategyCard.card_id.in_(sorted(card_ids)))).all()
+    card_titles = {card.card_id: card.title for card in cards}
+    return build_replay_response(review=review, incident=incident, card_titles=card_titles)

@@ -1,23 +1,50 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap');
 
 :root {
-  --font-ui: 'Space Grotesk', 'Noto Sans SC', sans-serif;
-  --bg: radial-gradient(circle at 10% 15%, #294f49 0%, #0c1f1c 55%, #091412 100%);
-  --card-bg: rgba(242, 232, 213, 0.09);
-  --card-border: rgba(242, 232, 213, 0.25);
-  --text: #f9f6ee;
-  --muted: #d1c7b4;
-  --brand: #d17842;
-  --ok: #4caf7a;
-  --warn: #e3b24e;
-  --danger: #db5f5f;
+  color-scheme: light;
+  --font-ui: 'Manrope', 'Noto Sans SC', sans-serif;
+  --bg: linear-gradient(180deg, #fcf7f1 0%, #f7efe6 54%, #f3ecdf 100%);
+  --card-bg: rgba(255, 250, 245, 0.82);
+  --card-elevated: rgba(255, 253, 249, 0.9);
+  --card-border: rgba(194, 165, 143, 0.28);
+  --hairline: rgba(168, 141, 118, 0.18);
+  --surface-soft: rgba(255, 244, 236, 0.72);
+  --surface-accent: rgba(244, 229, 219, 0.76);
+  --text: #5d4a40;
+  --text-strong: #352722;
+  --muted: #8d7566;
+  --brand: #d89977;
+  --brand-strong: #c6794f;
+  --brand-soft: #f7e3d5;
+  --accent: #96b39b;
+  --accent-soft: #e3ece2;
+  --ok: #6c9f84;
+  --warn: #c89d53;
+  --danger: #c6706a;
+  --shadow-sm: 0 16px 34px rgba(124, 96, 76, 0.1);
+  --shadow-md: 0 24px 52px rgba(124, 96, 76, 0.14);
+  --shadow-lg: 0 32px 80px rgba(124, 96, 76, 0.18);
+  --focus-ring: 0 0 0 4px rgba(216, 153, 119, 0.18);
 }
 
 :root[data-theme='low-stim'] {
-  --bg: linear-gradient(180deg, #16201f 0%, #0f1716 100%);
-  --card-bg: rgba(255, 255, 255, 0.06);
-  --card-border: rgba(255, 255, 255, 0.16);
-  --text: #f6f6f2;
-  --muted: #c8cdc8;
-  --brand: #8aab98;
+  --bg: linear-gradient(180deg, #f6f2eb 0%, #f1ebe3 100%);
+  --card-bg: rgba(252, 248, 243, 0.92);
+  --card-elevated: rgba(255, 252, 248, 0.96);
+  --card-border: rgba(186, 163, 147, 0.26);
+  --hairline: rgba(163, 142, 127, 0.16);
+  --surface-soft: rgba(247, 241, 234, 0.9);
+  --surface-accent: rgba(244, 235, 227, 0.88);
+  --text: #554840;
+  --text-strong: #332822;
+  --muted: #847165;
+  --brand: #cda085;
+  --brand-strong: #bb8566;
+  --brand-soft: #f3e3d7;
+  --accent: #d8c5b5;
+  --accent-soft: #f2ebe3;
+  --ok: #82977f;
+  --warn: #b89a63;
+  --danger: #b97d78;
+  --focus-ring: 0 0 0 4px rgba(205, 160, 133, 0.16);
 }

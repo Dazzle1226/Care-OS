@@ -9,6 +9,9 @@ from sqlalchemy.orm import Session
 from app.agents.respite import RespiteAgent
 from app.models import ChildProfile, Family, Review, StrategyCard
 from app.schemas.domain import (
+    FRICTION_PRESET_LABELS,
+    FrictionCrisisCard,
+    FrictionLowStimMode,
     FrictionRespiteSuggestion,
     FrictionSupportGenerateRequest,
     FrictionSupportPlan,
@@ -68,15 +71,34 @@ class FrictionAgent:
             raise ValueError("No friction support cards available")
 
         respite = self._build_respite_suggestion(db=db, family=family, signal=signal, payload=payload)
+        action_plan = self._action_plan(cards=cards, profile=profile, payload=payload, state=state)
+        donts = self._donts(cards=cards, profile=profile, state=state)
+        say_this = self._say_this(action_plan=action_plan, state=state)
+        exit_plan = self._exit_plan(profile=profile, payload=payload, state=state)
+        low_stim_mode = self._low_stim_mode(profile=profile, payload=payload, state=state)
 
         return FrictionSupportPlan(
+            preset_label=self._preset_label(payload),
             headline=self._headline(payload, signal, state),
             situation_summary=self._situation_summary(payload, signal),
             child_signals=self._child_signals(payload),
             caregiver_signals=self._caregiver_signals(payload),
-            action_plan=self._action_plan(cards=cards, profile=profile, payload=payload, state=state),
+            action_plan=action_plan,
+            donts=donts,
+            say_this=say_this,
             voice_guidance=self._voice_guidance(payload, state),
-            exit_plan=self._exit_plan(profile=profile, payload=payload, state=state),
+            exit_plan=exit_plan,
+            low_stim_mode=low_stim_mode,
+            crisis_card=self._crisis_card(
+                payload=payload,
+                signal=signal,
+                state=state,
+                action_plan=action_plan,
+                donts=donts,
+                say_this=say_this,
+                exit_plan=exit_plan,
+                low_stim_mode=low_stim_mode,
+            ),
             respite_suggestion=respite,
             personalized_strategies=self._personalized_strategies(db=db, cards=cards, profile=profile, payload=payload),
             school_message=self._school_message(cards=cards, profile=profile, payload=payload),
@@ -87,7 +109,8 @@ class FrictionAgent:
 
     def _derive_state(self, payload: FrictionSupportGenerateRequest, signal: SignalOutput) -> FrictionState:
         low_stim_only = (
-            payload.child_state in {"sensory_overload", "meltdown"}
+            payload.low_stim_mode_requested
+            or payload.child_state in {"sensory_overload", "meltdown"}
             or payload.sensory_overload_level in {"medium", "heavy"}
             or payload.meltdown_count >= 2
             or payload.caregiver_stress >= 8
@@ -106,7 +129,8 @@ class FrictionAgent:
             retrieval_scenario = "outing" if payload.sensory_overload_level in {"medium", "heavy"} else "transition"
 
         needs_fast_exit = (
-            payload.child_state in {"conflict", "meltdown"}
+            payload.child_state in {"sensory_overload", "meltdown"}
+            or payload.child_state in {"conflict", "meltdown"}
             or payload.caregiver_stress >= 9
             or payload.confidence_to_follow_plan <= 3
         )
@@ -151,32 +175,28 @@ class FrictionAgent:
         )
 
     def _headline(self, payload: FrictionSupportGenerateRequest, signal: SignalOutput, state: FrictionState) -> str:
-        scenario_label = self.scenario_labels[payload.scenario]
+        scenario_label = self._preset_label(payload)
         if state.low_stim_only:
-            return f"{scenario_label}高摩擦时刻：先保安全，再降刺激"
+            return f"{scenario_label}高摩擦时刻：先保安全，再退场"
         if signal.risk_level == "yellow":
-            return f"{scenario_label}高摩擦时刻：先稳住，再推进下一步"
-        return f"{scenario_label}高摩擦时刻：先给清晰步骤，不讲道理"
+            return f"{scenario_label}高摩擦时刻：先稳住，再做一步"
+        return f"{scenario_label}高摩擦时刻：先停住，再推进"
 
     def _situation_summary(self, payload: FrictionSupportGenerateRequest, signal: SignalOutput) -> str:
         reason = signal.reasons[0] if signal.reasons else "当前负荷偏高"
-        return (
-            f"{reason}。孩子当前{self.child_state_labels[payload.child_state]}，感官负荷"
-            f"{self.sensory_labels[payload.sensory_overload_level]}，过渡难度 {payload.transition_difficulty:g}/10；"
-            f"家长压力 {payload.caregiver_stress:g}/10，疲劳 {payload.caregiver_fatigue:g}/10。"
-        )
+        return f"{reason}。现在先照行动卡做，不临时加码，不讲长道理。"
 
     def _child_signals(self, payload: FrictionSupportGenerateRequest) -> list[str]:
         return [
-            f"当前状态：{self.child_state_labels[payload.child_state]}",
-            f"感官负荷：{self.sensory_labels[payload.sensory_overload_level]}",
-            f"今日冲突/崩溃 {payload.meltdown_count} 次，过渡难度 {payload.transition_difficulty:g}/10",
+            f"孩子：{self.child_state_labels[payload.child_state]}",
+            f"感官：{self.sensory_labels[payload.sensory_overload_level]}",
+            f"今日升级 {payload.meltdown_count} 次",
         ]
 
     def _caregiver_signals(self, payload: FrictionSupportGenerateRequest) -> list[str]:
         return [
             f"家长压力 {payload.caregiver_stress:g}/10，疲劳 {payload.caregiver_fatigue:g}/10",
-            f"睡眠质量 {payload.caregiver_sleep_quality:g}/10，执行信心 {payload.confidence_to_follow_plan:g}/10",
+            f"信心 {payload.confidence_to_follow_plan:g}/10，睡眠 {payload.caregiver_sleep_quality:g}/10",
             self.support_labels[payload.support_available],
         ]
 
@@ -192,6 +212,23 @@ class FrictionAgent:
             return values[-1]
         return values[idx]
 
+    @staticmethod
+    def _unique_lines(values: list[str], *, limit: int) -> list[str]:
+        deduped = list(dict.fromkeys(value.strip() for value in values if value.strip()))
+        return deduped[:limit]
+
+    @staticmethod
+    def _custom_scenario_label(payload: FrictionSupportGenerateRequest) -> str:
+        return payload.custom_scenario.strip()
+
+    def _preset_label(self, payload: FrictionSupportGenerateRequest) -> str:
+        custom_label = self._custom_scenario_label(payload)
+        if custom_label:
+            return custom_label
+        if payload.quick_preset:
+            return FRICTION_PRESET_LABELS[payload.quick_preset]
+        return self.scenario_labels[payload.scenario]
+
     def _step_titles(self, state: FrictionState) -> list[str]:
         first = "先停住并降刺激" if state.low_stim_only else "先停住当前任务"
         return [first, "给边界和两个选择", "切到恢复或收尾"]
@@ -205,33 +242,31 @@ class FrictionAgent:
     ) -> list[FrictionSupportStep]:
         soothing_place = self._pick(getattr(profile, "soothing_methods", []), "安静角落")
         base_scripts = [
-            "我在这里，你是安全的，我们先停一下。",
-            "现在只做一个小选择：你想自己来，还是我陪你一起？",
-            f"这件事先暂停，我们先去 {soothing_place}，等身体稳下来再回来。",
+            "先停一下，你是安全的，我会陪你。",
+            "现在只选一个：你自己来，还是我陪你？",
+            f"这件事先暂停，我们先去 {soothing_place}。",
         ]
         why_bits = [
-            f"孩子现在{self.child_state_labels[payload.child_state]}，先降刺激比解释更有效。",
-            "高摩擦时刻大脑更难处理长指令，缩成一个边界加两个选项更容易跟上。",
-            "如果前两步仍无效，先保护关系和安全，不要硬把任务做完。",
+            "先停住，能避免继续往上冲。",
+            "两个选项比一长串解释更容易跟上。",
+            "先保安全和关系，不硬做完任务。",
         ]
-        action_suffix = [
-            "先把灯光、声音和围观者降下来，只保留一个要求。",
-            "说完后等 5 秒，不追问、不补充第二段解释。",
-            f"若仍卡住，直接转去 {soothing_place} 或执行退场。",
+        action_lines = [
+            "停下当前要求，先降声音和灯光。",
+            "只给一个边界和两个选项，然后等 5 秒。",
+            f"若仍卡住，转去 {soothing_place} 或直接退场。",
         ]
 
         plan: list[FrictionSupportStep] = []
         titles = self._step_titles(state)
-        for idx, card in enumerate(cards[:3]):
-            raw_step = card.steps_json[min(idx, len(card.steps_json) - 1)] if card.steps_json else "先把目标缩成一步。"
-            action = f"{self._clean_step_text(raw_step)} {action_suffix[idx]}".strip()
-            script = card.scripts_json.get("parent") if idx == 0 else base_scripts[idx]
+        for idx, _card in enumerate(cards[:3]):
+            script = cards[0].scripts_json.get("parent") if idx == 0 else base_scripts[idx]
             if not script:
                 script = base_scripts[idx]
             plan.append(
                 FrictionSupportStep(
                     title=titles[idx],
-                    action=action,
+                    action=action_lines[idx],
                     parent_script=script,
                     why_it_fits=why_bits[idx],
                 )
@@ -242,12 +277,90 @@ class FrictionAgent:
             plan.append(
                 FrictionSupportStep(
                     title=titles[idx],
-                    action=action_suffix[idx],
+                    action=action_lines[idx],
                     parent_script=base_scripts[idx],
                     why_it_fits=why_bits[idx],
                 )
             )
         return plan[:3]
+
+    def _donts(self, cards: list[StrategyCard], profile: ChildProfile | None, state: FrictionState) -> list[str]:
+        profile_donts = getattr(profile, "donts", [])
+        donts: list[str] = []
+        if any("触" in item or "碰" in item for item in profile_donts):
+            donts.append("不要碰身体或强拉。")
+        if any("大声" in item or "吼" in item for item in profile_donts):
+            donts.append("不要提高音量。")
+        if any("追问" in item or "为什么" in item for item in profile_donts):
+            donts.append("不要追问原因。")
+
+        for card in cards:
+            donts.extend(item if item.endswith("。") else f"{item}。" for item in card.donts_json[:2])
+
+        if state.needs_fast_exit:
+            donts.append("不要一边升级一边硬做完任务。")
+        donts.extend(["不要连续换很多说法。", "不要同时提多个要求。"])
+        return self._unique_lines(donts, limit=4)[:4]
+
+    def _say_this(self, action_plan: list[FrictionSupportStep], state: FrictionState) -> list[str]:
+        lines = [step.parent_script for step in action_plan[:2]]
+        lines.append("这件事现在先暂停，我们先把身体稳下来。" if state.needs_fast_exit else "先做完这一步，别的等会儿再说。")
+        return self._unique_lines(lines, limit=3)
+
+    def _low_stim_mode(
+        self,
+        profile: ChildProfile | None,
+        payload: FrictionSupportGenerateRequest,
+        state: FrictionState,
+    ) -> FrictionLowStimMode:
+        soothing_place = self._pick(getattr(profile, "soothing_methods", []), "安静角落")
+        active = state.low_stim_only or payload.low_stim_mode_requested
+        headline = "低刺激模式已开启" if active else "建议一键切到低刺激模式"
+        actions = [
+            "关掉额外声音和强光。",
+            "只留一位沟通者，短句低声。",
+            f"先去 {soothing_place} 或保持原地低刺激陪伴。",
+        ]
+        if payload.support_available != "none":
+            actions.append("必要时让支持者接手 10-15 分钟。")
+        return FrictionLowStimMode(active=active, headline=headline, actions=actions[:4])
+
+    def _crisis_card(
+        self,
+        payload: FrictionSupportGenerateRequest,
+        signal: SignalOutput,
+        state: FrictionState,
+        action_plan: list[FrictionSupportStep],
+        donts: list[str],
+        say_this: list[str],
+        exit_plan: list[str],
+        low_stim_mode: FrictionLowStimMode,
+    ) -> FrictionCrisisCard:
+        help_now = []
+        if payload.support_available != "none":
+            help_now.append("联系支持者接手 10-15 分钟。")
+        else:
+            help_now.append("联系家里可到场的人或学校支持联系人。")
+        if signal.risk_level == "red" or payload.high_risk_selected:
+            help_now.append("若有人身风险，立即联系当地急救或危机热线。")
+        else:
+            help_now.append("若 10 分钟仍持续升级，立即求助。")
+        badges = [
+            f"场景 {self._preset_label(payload)}",
+            f"风险 {signal.risk_level.upper()}",
+            "低刺激" if low_stim_mode.active else "标准",
+        ]
+        if state.needs_fast_exit:
+            badges.append("优先退场")
+        return FrictionCrisisCard(
+            title=f"{self._preset_label(payload)}危机卡",
+            badges=badges[:4],
+            first_do=[step.action for step in action_plan[:3]],
+            donts=self._unique_lines(donts, limit=3),
+            say_this=self._unique_lines(say_this, limit=3),
+            exit_plan=exit_plan[:3],
+            help_now=help_now[:2],
+        )
 
     def _voice_guidance(self, payload: FrictionSupportGenerateRequest, state: FrictionState) -> list[str]:
         third_line = "如果继续升级，直接执行退场，不跟孩子争输赢。" if state.needs_fast_exit else "只推进下一步，不要同时处理三个问题。"
@@ -381,7 +494,7 @@ class FrictionAgent:
         if payload.env_changes:
             env_note = f" 今天还有{'、'.join(payload.env_changes[:2])}等变化，请减少临时调整。"
         return (
-            f"今天孩子在{self.scenario_labels[payload.scenario]}场景负荷偏高，请统一采用短句、先预告再切换的方式。"
+            f"今天孩子在{self._preset_label(payload)}场景负荷偏高，请统一采用短句、先预告再切换的方式。"
             f"{teacher_script} 若出现升级，请先降噪、给两个选项，并允许去 {soothing_place} 缓冲 5-10 分钟。"
             f"{env_note}"
         ).strip()

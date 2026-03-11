@@ -5,16 +5,19 @@ from datetime import date as date_type
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.agents.training import TrainingAgent
 from app.api.deps import get_current_user
 from app.db.base import get_db
 from app.models import Family, TrainingTaskFeedback, User
 from app.schemas.domain import (
+    TrainingDashboardResponse,
+    TrainingDomainDetailResponse,
     TrainingPlanGenerateRequest,
-    TrainingPlanResponse,
+    TrainingReminderRequest,
+    TrainingReminderResponse,
     TrainingTaskFeedbackRequest,
     TrainingTaskFeedbackResponse,
 )
+from app.services.training_system import TrainingSystemService
 
 router = APIRouter(prefix="/training", tags=["training"])
 
@@ -26,30 +29,53 @@ def _get_family_or_404(db: Session, family_id: int) -> Family:
     return family
 
 
-@router.get("/current/{family_id}", response_model=TrainingPlanResponse)
+@router.get("/current/{family_id}", response_model=TrainingDashboardResponse)
 def get_current_training_plan(
     family_id: int,
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
-) -> TrainingPlanResponse:
+) -> TrainingDashboardResponse:
     family = _get_family_or_404(db, family_id)
     try:
-        return TrainingAgent().generate_plan(db=db, family=family)
+        dashboard = TrainingSystemService().get_dashboard(db=db, family=family)
+        db.commit()
+        return dashboard
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-@router.post("/generate", response_model=TrainingPlanResponse)
+@router.post("/generate", response_model=TrainingDashboardResponse)
 def generate_training_plan(
     payload: TrainingPlanGenerateRequest,
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
-) -> TrainingPlanResponse:
+) -> TrainingDashboardResponse:
     family = _get_family_or_404(db, payload.family_id)
     try:
-        return TrainingAgent().generate_plan(db=db, family=family, extra_context=payload.extra_context)
+        dashboard = TrainingSystemService().get_dashboard(
+            db=db,
+            family=family,
+            extra_context=payload.extra_context,
+            force_regenerate=True,
+        )
+        db.commit()
+        return dashboard
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/domain/{family_id}/{area_key}", response_model=TrainingDomainDetailResponse)
+def get_training_domain_detail(
+    family_id: int,
+    area_key: str,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+) -> TrainingDomainDetailResponse:
+    family = _get_family_or_404(db, family_id)
+    try:
+        return TrainingSystemService().get_domain_detail(db=db, family=family, area_key=area_key)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.post("/feedback", response_model=TrainingTaskFeedbackResponse)
@@ -59,37 +85,70 @@ def submit_training_feedback(
     _: User = Depends(get_current_user),
 ) -> TrainingTaskFeedbackResponse:
     family = _get_family_or_404(db, payload.family_id)
+    service = TrainingSystemService()
+    try:
+        task = service.get_task_or_404(db=db, family_id=payload.family_id, task_instance_id=payload.task_instance_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    difficulty_rating, effect_score, parent_confidence, derived_safety_pause = service.derive_feedback(
+        completion_status=payload.completion_status,
+        child_response=payload.child_response,
+        helpfulness=payload.helpfulness,
+        obstacle_tag=payload.obstacle_tag,
+        notes=payload.notes,
+    )
     feedback = TrainingTaskFeedback(
         family_id=payload.family_id,
         date=payload.date or date_type.today(),
-        task_key=payload.task_key,
-        task_title=payload.task_title,
-        area_key=payload.area_key,
+        task_instance_id=task.id,
+        task_key=str(task.task_json.get("task_key") or f"{task.area_key}_{task.id}"),
+        task_title=task.title,
+        area_key=task.area_key,
         completion_status=payload.completion_status,
         child_response=payload.child_response,
-        difficulty_rating=payload.difficulty_rating,
-        effect_score=payload.effect_score,
-        parent_confidence=payload.parent_confidence,
+        difficulty_rating=difficulty_rating,
+        effect_score=effect_score,
+        parent_confidence=parent_confidence,
+        helpfulness=payload.helpfulness,
+        obstacle_tag=payload.obstacle_tag,
+        safety_pause=payload.safety_pause or derived_safety_pause,
         notes=payload.notes,
     )
     db.add(feedback)
+    db.flush()
+    adjustment_summary, safety_alert = service.apply_feedback(db=db, family=family, task=task, feedback=feedback)
+    dashboard = service.get_dashboard(db=db, family=family)
     db.commit()
     db.refresh(feedback)
 
-    agent = TrainingAgent()
-    try:
-        plan = agent.generate_plan(db=db, family=family)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
     return TrainingTaskFeedbackResponse(
         feedback_id=feedback.id,
-        next_adjustment=agent.next_adjustment(
-            completion_status=payload.completion_status,
-            child_response=payload.child_response,
-            difficulty_rating=payload.difficulty_rating,
-            effect_score=payload.effect_score,
-        ),
-        progress_summary=plan.recent_feedback_summary,
-        plan=plan,
+        adjustment_summary=adjustment_summary,
+        safety_alert=safety_alert,
+        dashboard=dashboard,
+    )
+
+
+@router.post("/reminder", response_model=TrainingReminderResponse)
+def schedule_training_reminder(
+    payload: TrainingReminderRequest,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+) -> TrainingReminderResponse:
+    family = _get_family_or_404(db, payload.family_id)
+    service = TrainingSystemService()
+    try:
+        task = service.get_task_or_404(db=db, family_id=payload.family_id, task_instance_id=payload.task_instance_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    service.schedule_reminder(task=task, remind_at=payload.remind_at)
+    dashboard = service.get_dashboard(db=db, family=family)
+    db.commit()
+    return TrainingReminderResponse(
+        task_instance_id=task.id,
+        reminder_status=task.reminder_status,
+        remind_at=task.reminder_at,
+        dashboard=dashboard,
     )

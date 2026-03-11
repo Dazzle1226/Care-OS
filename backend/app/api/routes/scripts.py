@@ -25,9 +25,15 @@ from app.schemas.domain import (
 router = APIRouter(prefix="/scripts", tags=["scripts"])
 
 
+def _friction_incident_scenario(payload: FrictionSupportGenerateRequest) -> str:
+    return payload.custom_scenario.strip() or payload.scenario
+
+
 def _friction_intensity(payload: FrictionSupportGenerateRequest) -> str:
     if (
-        payload.child_state == "meltdown"
+        payload.low_stim_mode_requested
+        or payload.quick_preset == "meltdown_now"
+        or payload.child_state == "meltdown"
         or payload.sensory_overload_level == "heavy"
         or payload.meltdown_count >= 2
         or payload.caregiver_stress >= 8
@@ -65,6 +71,14 @@ def _next_adjustment(score: int, child_state_after: str, caregiver_state_after: 
             return "下次会更早切到退场和低刺激恢复，减少口头解释。"
         return "下次会保留这个方向，但优先缩短指令并更早给过渡缓冲。"
     return "下次会降低这组策略权重，优先切换到更低刺激、可更快交接的方案。"
+
+
+def _recommendation_for_feedback(score: int, caregiver_state_after: str) -> str:
+    if score >= 1:
+        return "continue"
+    if caregiver_state_after == "more_overloaded" or score <= -1:
+        return "replace"
+    return "pause"
 
 
 @router.post("/generate", response_model=ScriptGenerateResponse)
@@ -139,10 +153,11 @@ def generate_friction_support(
     incident = IncidentLog(
         family_id=payload.family_id,
         ts=datetime.utcnow(),
-        scenario=payload.scenario,
+        scenario=_friction_incident_scenario(payload),
         intensity=_friction_intensity(payload),
         triggers=[payload.child_state, *payload.env_changes[:2]],
         selected_resources={
+            "base_scenario": payload.scenario,
             "source_card_ids": support.source_card_ids,
             "respite_title": support.respite_suggestion.title,
         },
@@ -191,6 +206,9 @@ def submit_friction_support_feedback(
         family_id=payload.family_id,
         card_ids=payload.source_card_ids,
         outcome_score=score,
+        child_state_after=payload.child_state_after,
+        caregiver_state_after=payload.caregiver_state_after,
+        recommendation=_recommendation_for_feedback(score, payload.caregiver_state_after),
         notes=payload.notes,
         followup_action=next_adjustment,
     )

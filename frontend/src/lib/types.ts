@@ -11,14 +11,14 @@ export interface CheckinRecord {
   checkin_id: number;
   date: string;
   child_sleep_hours: number;
-  child_sleep_quality: number;
+  child_sleep_quality: number | null;
   sleep_issues: string[];
   meltdown_count: number;
   child_mood_state: 'stable' | 'sensitive' | 'anxious' | 'low_energy' | 'irritable';
   physical_discomforts: string[];
   aggressive_behaviors: string[];
   negative_emotions: string[];
-  transition_difficulty: number;
+  transition_difficulty: number | null;
   sensory_overload_level: 'none' | 'light' | 'medium' | 'heavy';
   caregiver_stress: number;
   caregiver_sleep_quality: number;
@@ -27,9 +27,16 @@ export interface CheckinRecord {
   today_learning_tasks: string[];
 }
 
+export interface TodayReminderItem {
+  eyebrow: string;
+  title: string;
+  body: string;
+}
+
 export interface DailyActionPlan {
   headline: string;
   summary: string;
+  reminders: TodayReminderItem[];
   three_step_action: string[];
   parent_phrase: string;
   meltdown_fallback: string[];
@@ -74,20 +81,17 @@ export interface PlanActionItem {
   escalate_when: string[];
 }
 
-export interface Plan48hResponse {
-  today_cut_list: string[];
-  priority_scenarios: string[];
-  respite_slots: RespiteSlot[];
-  messages: PlanMessage[];
-  exit_card_3steps: string[];
-  tomorrow_plan: string[];
-  action_steps: PlanActionItem[];
-  citations: string[];
-  safety_flags: string[];
-}
-
 export interface SafetyBlockResponse {
+  severity: 'high_risk' | 'conflict' | 'quality';
   block_reason: string;
+  safe_next_steps: string[];
+  do_not_do: string[];
+  say_this_now: string;
+  exit_plan: string[];
+  help_now: string[];
+  low_stim_recommended: boolean;
+  conflict_explanation?: string | null;
+  alternatives: string[];
   environment_checklist: string[];
   emergency_guidance: string[];
   emergency_contact_template: string;
@@ -136,14 +140,6 @@ export interface MicroRespiteFeedbackResponse {
   next_hint: string;
 }
 
-export interface PlanGenerateResponse {
-  blocked: boolean;
-  plan_id?: number;
-  risk?: SignalOutput;
-  plan?: Plan48hResponse;
-  safety_block?: SafetyBlockResponse;
-}
-
 export interface ScriptResponse {
   steps: string[];
   script_line: string;
@@ -173,6 +169,22 @@ export interface FrictionSupportStep {
   why_it_fits: string;
 }
 
+export interface FrictionLowStimMode {
+  active: boolean;
+  headline: string;
+  actions: string[];
+}
+
+export interface FrictionCrisisCard {
+  title: string;
+  badges: string[];
+  first_do: string[];
+  donts: string[];
+  say_this: string[];
+  exit_plan: string[];
+  help_now: string[];
+}
+
 export interface FrictionRespiteSuggestion {
   title: string;
   summary: string;
@@ -181,13 +193,18 @@ export interface FrictionRespiteSuggestion {
 }
 
 export interface FrictionSupportPlan {
+  preset_label: string;
   headline: string;
   situation_summary: string;
   child_signals: string[];
   caregiver_signals: string[];
   action_plan: FrictionSupportStep[];
+  donts: string[];
+  say_this: string[];
   voice_guidance: string[];
   exit_plan: string[];
+  low_stim_mode: FrictionLowStimMode;
+  crisis_card: FrictionCrisisCard;
   respite_suggestion: FrictionRespiteSuggestion;
   personalized_strategies: string[];
   school_message: string;
@@ -218,11 +235,28 @@ export type TrainingAreaKey =
   | 'social_interaction'
   | 'sensory_regulation'
   | 'transition_flexibility'
-  | 'daily_living';
+  | 'daily_living'
+  | 'waiting_tolerance'
+  | 'task_initiation'
+  | 'bedtime_routine'
+  | 'simple_compliance';
 
 export type TrainingCompletionStatus = 'done' | 'partial' | 'missed';
 export type TrainingChildResponse = 'engaged' | 'accepted' | 'resistant' | 'overloaded';
 export type TrainingDifficultyRating = 'too_easy' | 'just_right' | 'too_hard';
+export type TrainingSkillStage = 'stabilize' | 'practice' | 'generalize' | 'maintain';
+export type TrainingLoadLevel = 'light' | 'standard' | 'adaptive';
+export type TrainingTaskStatus = 'pending' | 'scheduled' | 'done' | 'partial' | 'missed';
+export type TrainingHelpfulness = 'helpful' | 'neutral' | 'not_helpful';
+export type TrainingObstacleTag =
+  | 'none'
+  | 'too_hard'
+  | 'refused'
+  | 'parent_overloaded'
+  | 'wrong_timing'
+  | 'sensory_overload'
+  | 'unclear_steps';
+export type TrainingReminderStatus = 'none' | 'scheduled' | 'due';
 
 export interface TrainingGoal {
   title: string;
@@ -230,82 +264,156 @@ export interface TrainingGoal {
   success_marker: string;
 }
 
-export interface TrainingFocusArea {
-  area_key: TrainingAreaKey;
-  title: string;
-  priority_score: number;
-  urgency: 'urgent' | 'high' | 'watch';
-  why_now: string[];
-  profile_signals: string[];
-  recent_signals: string[];
-  long_term_value: string;
-}
-
-export interface TrainingTask {
-  task_key: string;
-  title: string;
-  area_key: TrainingAreaKey;
-  duration_minutes: number;
-  schedule_hint: string;
-  objective: string;
-  materials: string[];
-  steps: string[];
-  parent_script: string;
-  coaching_tip: string;
-  success_signals: string[];
-  fallback_plan: string;
-  difficulty: 'starter' | 'build' | 'advance';
-}
-
-export interface TrainingAdjustment {
-  title: string;
-  suggestion: string;
-  reason: string;
-}
-
-export interface TrainingProgressItem {
-  label: string;
-  value: number;
-  target: number;
-  summary: string;
-}
-
 export interface TrainingFeedbackRecord {
   feedback_id: number;
   date: string;
+  task_instance_id?: number | null;
   task_key: string;
   task_title: string;
   area_key: TrainingAreaKey;
   completion_status: TrainingCompletionStatus;
   child_response: TrainingChildResponse;
   difficulty_rating: TrainingDifficultyRating;
+  helpfulness: TrainingHelpfulness;
+  obstacle_tag: TrainingObstacleTag;
+  safety_pause: boolean;
   effect_score: number;
   parent_confidence: number;
   notes: string;
 }
 
-export interface TrainingPlan {
+export interface TrainingPriorityDomainCard {
+  area_key: TrainingAreaKey;
+  title: string;
+  priority_label: 'high' | 'medium';
+  priority_score: number;
+  recommended_reason: string;
+  current_stage: TrainingSkillStage;
+  current_difficulty: 'starter' | 'build' | 'advance';
+  weekly_sessions_count: number;
+  has_today_task: boolean;
+  current_status: string;
+  improvement_value: string;
+}
+
+export interface DailyTrainingTask {
+  task_instance_id: number;
+  area_key: TrainingAreaKey;
+  area_title: string;
+  title: string;
+  today_goal: string;
+  training_scene: string;
+  schedule_hint: string;
+  steps: string[];
+  parent_script: string;
+  duration_minutes: number;
+  difficulty: 'starter' | 'build' | 'advance';
+  materials: string[];
+  fallback_plan: string;
+  coaching_tip: string;
+  status: TrainingTaskStatus;
+  reminder_status: TrainingReminderStatus;
+  reminder_at?: string | null;
+  feedback_ready: boolean;
+  highlight: boolean;
+}
+
+export interface TrainingTrendPoint {
+  label: string;
+  completed_count: number;
+  task_count: number;
+  completion_rate: number;
+}
+
+export interface TrainingMethodInsight {
+  title: string;
+  summary: string;
+  evidence_count: number;
+  effectiveness_score: number;
+}
+
+export interface TrainingProgressOverview {
+  streak_days: number;
+  weekly_completion_count: number;
+  seven_day_completion_rate: number;
+  recent_trend: TrainingTrendPoint[];
+  best_method_summary: string;
+}
+
+export interface TrainingAdjustmentLogItem {
+  adjustment_id: number;
+  area_key: TrainingAreaKey;
+  title: string;
+  summary: string;
+  trigger: string;
+  before_state: Record<string, unknown>;
+  after_state: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface TrainingDashboardSummary {
+  week_completed_count: number;
+  priority_domain_count: number;
+  streak_days: number;
+  current_load_level: TrainingLoadLevel;
+  summary_text: string;
+}
+
+export interface TrainingDashboard {
   family_id: number;
-  child_summary: string;
-  plan_summary: string;
-  primary_need: string;
-  load_level: 'light' | 'standard' | 'adaptive';
-  focus_areas: TrainingFocusArea[];
-  short_term_goals: TrainingGoal[];
-  long_term_goals: TrainingGoal[];
-  daily_tasks: TrainingTask[];
-  guidance: string[];
-  adjustments: TrainingAdjustment[];
-  progress: TrainingProgressItem[];
-  recent_feedback_summary: string;
+  summary: TrainingDashboardSummary;
+  priority_domains: TrainingPriorityDomainCard[];
+  today_tasks: DailyTrainingTask[];
+  progress_overview: TrainingProgressOverview;
+  method_insights: TrainingMethodInsight[];
+  recent_adjustments: TrainingAdjustmentLogItem[];
+  safety_alert?: string | null;
+}
+
+export interface TrainingDomainProgress {
+  current_stage: TrainingSkillStage;
+  current_difficulty: 'starter' | 'build' | 'advance';
+  weekly_sessions_count: number;
+  total_completed_count: number;
+  recent_completion_rate: number;
+  recent_effective_rate: number;
+}
+
+export interface TrainingDomainDetail {
+  family_id: number;
+  area_key: TrainingAreaKey;
+  title: string;
+  current_stage: TrainingSkillStage;
+  current_difficulty: 'starter' | 'build' | 'advance';
+  importance_summary: string;
+  related_daily_challenges: string[];
+  reason_for_priority: string[];
+  current_risks: string[];
+  short_term_goal: TrainingGoal;
+  medium_term_goal: TrainingGoal;
+  training_principles: string[];
+  suggested_scenarios: string[];
+  parent_steps: string[];
+  script_examples: string[];
+  fallback_options: string[];
+  cautions: string[];
+  progress: TrainingDomainProgress;
   recent_feedbacks: TrainingFeedbackRecord[];
+  adjustment_logs: TrainingAdjustmentLogItem[];
 }
 
 export interface TrainingFeedbackResponse {
   feedback_id: number;
-  next_adjustment: string;
-  progress_summary: string;
-  plan: TrainingPlan;
+  adjustment_summary: string;
+  safety_alert?: string | null;
+  dashboard: TrainingDashboard;
+}
+
+export interface TrainingReminderResponse {
+  task_instance_id: number;
+  reminder_status: TrainingReminderStatus;
+  remind_at?: string | null;
+  dashboard: TrainingDashboard;
 }
 
 export interface FamilyRead {
@@ -332,6 +440,7 @@ export interface OnboardingSetupPayload {
   diagnosis_status?: OnboardingDiagnosis;
   diagnosis_notes?: string;
   communication_level?: OnboardingCommunication;
+  core_difficulties?: string[];
   coexisting_conditions?: string[];
   family_members?: string[];
   interests?: string[];
@@ -360,6 +469,10 @@ export interface OnboardingSetupPayload {
   parent_support_actions?: string[];
   parent_emotional_supports?: string[];
   available_supporters?: string[];
+  supporter_availability?: string[];
+  supporter_independent_care?: 'can_alone' | 'needs_handoff' | 'cannot_alone' | 'unknown';
+  major_incident_notes?: string;
+  emergency_contacts?: string[];
 }
 
 export interface ChildProfileRead {
@@ -394,10 +507,18 @@ export interface OnboardingSnapshot {
 
 export interface OnboardingSupportCard {
   card_id: string;
-  icon: 'child' | 'parent' | 'team';
+  icon: 'support' | 'handoff';
   title: string;
   summary: string;
-  bullets: string[];
+  one_liner: string;
+  quick_actions: string[];
+  sections: OnboardingSupportCardSection[];
+}
+
+export interface OnboardingSupportCardSection {
+  key: string;
+  title: string;
+  items: string[];
 }
 
 export interface OnboardingSummary {
@@ -422,12 +543,32 @@ export interface TaskEffectItem {
   outcome_score: number;
 }
 
+export interface ReplayStep {
+  label: string;
+  value: string;
+}
+
+export interface ReplayItem {
+  incident_id: number;
+  scenario: string;
+  happened_at?: string | null;
+  recommendation: 'continue' | 'pause' | 'replace';
+  strategy_titles: string[];
+  timeline: ReplayStep[];
+  next_improvement: string;
+}
+
 export interface StrategyInsight {
   target_key: string;
   title: string;
   summary: string;
   evidence_count: number;
   avg_outcome: number;
+  success_rate: number;
+  fit_rate: number;
+  applicability: 'high' | 'medium' | 'low';
+  recommendation: 'continue' | 'pause' | 'replace';
+  why_ranked: string[];
 }
 
 export interface ActionSuggestion {
@@ -435,6 +576,7 @@ export interface ActionSuggestion {
   title: string;
   summary: string;
   rationale: string;
+  recommendation: 'continue' | 'pause' | 'replace';
 }
 
 export interface ReportFeedbackSummary {
@@ -451,6 +593,15 @@ export interface ReportFeedbackState {
   feedback: FeedbackValue;
 }
 
+export interface TrendDeltaItem {
+  title: string;
+  summary: string;
+  current_value: number;
+  previous_value: number;
+  direction: 'up' | 'down' | 'flat';
+  unit: string;
+}
+
 export interface WeeklyReport {
   family_id: number;
   week_start: string;
@@ -461,6 +612,7 @@ export interface WeeklyReport {
   highest_risk_scenario: string;
   stress_trend: ReportMetricPoint[];
   meltdown_trend: ReportMetricPoint[];
+  week_over_week: TrendDeltaItem[];
   task_completion_score: number;
   task_summary: string;
   completed_tasks: TaskEffectItem[];
@@ -470,7 +622,9 @@ export interface WeeklyReport {
   caregiver_stress_avg: number;
   caregiver_stress_peak: number;
   caregiver_sleep_avg: number;
+  strategy_ranking_summary: string;
   strategy_top3: StrategyInsight[];
+  replay_items: ReplayItem[];
   next_actions: ActionSuggestion[];
   one_thing_next_week: string;
   feedback_summary: ReportFeedbackSummary;
@@ -503,6 +657,7 @@ export interface MonthlyReport {
   conflict_change_summary: string;
   task_completion_summary: string;
   long_term_trends: MonthlyTrendItem[];
+  strategy_ranking_summary: string;
   successful_methods: StrategyInsight[];
   next_month_plan: ActionSuggestion[];
   history: MonthlyHistoryPoint[];

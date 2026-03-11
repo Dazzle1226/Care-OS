@@ -56,7 +56,7 @@ class PlanAgent:
             for c in cards
         ]
 
-        system_prompt = "你是 ASD 家庭照护计划助手。只输出 JSON，不要解释。"
+        system_prompt = "你是 ASD 家庭照护计划助手。只输出 JSON，不要解释。所有字段都必须是短句，不能写段落。"
         user_prompt = json.dumps(
             {
                 "task": "生成48小时降负荷计划",
@@ -77,6 +77,7 @@ class PlanAgent:
                     "priority_scenarios_max": 2,
                     "exit_card_steps": 3,
                     "citations_required": True,
+                    "each_item_brief": True,
                 },
             },
             ensure_ascii=False,
@@ -94,7 +95,7 @@ class PlanAgent:
         cards: list,
         free_text: str,
     ) -> ScriptResponse:
-        system_prompt = "你是 ASD 场景脚本助手。只输出 JSON，不要解释。"
+        system_prompt = "你是 ASD 场景脚本助手。只输出 JSON，不要解释。所有步骤、禁忌和退场都要短句，避免段落。"
         user_prompt = json.dumps(
             {
                 "task": "生成场景脚本",
@@ -115,6 +116,7 @@ class PlanAgent:
                     "steps_exact": 3,
                     "donts_min": 2,
                     "citations_required": True,
+                    "short_read_aloud_line": True,
                 },
             },
             ensure_ascii=False,

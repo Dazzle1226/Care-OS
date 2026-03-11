@@ -12,3 +12,6 @@ def test_high_risk_keyword_should_block() -> None:
     assert decision.blocked is True
     assert decision.block is not None
     assert "高风险" in decision.block.block_reason
+    assert decision.block.severity == "high_risk"
+    assert len(decision.block.safe_next_steps) == 3
+    assert decision.block.say_this_now

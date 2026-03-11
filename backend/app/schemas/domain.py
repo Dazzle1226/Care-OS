@@ -1,15 +1,27 @@
 from __future__ import annotations
 
-from datetime import date as date_type
+from datetime import date as date_type, datetime as datetime_type
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+HighFrictionPreset = Literal[
+    "transition_now",
+    "bedtime_push",
+    "homework_push",
+    "outing_exit",
+    "meltdown_now",
+    "wakeup_stall",
+    "meal_conflict",
+    "screen_off",
+    "bath_resistance",
+    "waiting_public",
+]
 TrainingAreaKey = Literal[
     "emotion_regulation",
     "communication",
@@ -17,10 +29,177 @@ TrainingAreaKey = Literal[
     "sensory_regulation",
     "transition_flexibility",
     "daily_living",
+    "waiting_tolerance",
+    "task_initiation",
+    "bedtime_routine",
+    "simple_compliance",
 ]
 TrainingCompletionStatus = Literal["done", "partial", "missed"]
 TrainingChildResponse = Literal["engaged", "accepted", "resistant", "overloaded"]
 TrainingDifficultyRating = Literal["too_easy", "just_right", "too_hard"]
+TrainingSkillStage = Literal["stabilize", "practice", "generalize", "maintain"]
+TrainingLoadLevel = Literal["light", "standard", "adaptive"]
+TrainingTaskStatus = Literal["pending", "scheduled", "done", "partial", "missed"]
+TrainingHelpfulness = Literal["helpful", "neutral", "not_helpful"]
+TrainingObstacleTag = Literal[
+    "none",
+    "too_hard",
+    "refused",
+    "parent_overloaded",
+    "wrong_timing",
+    "sensory_overload",
+    "unclear_steps",
+]
+TrainingReminderStatus = Literal["none", "scheduled", "due"]
+
+FRICTION_PRESET_DEFAULTS: dict[HighFrictionPreset, dict[str, Any]] = {
+    "transition_now": {
+        "scenario": "transition",
+        "child_state": "transition_block",
+        "sensory_overload_level": "medium",
+        "transition_difficulty": 8.0,
+        "meltdown_count": 1,
+        "caregiver_stress": 7.0,
+        "caregiver_fatigue": 7.0,
+        "caregiver_sleep_quality": 4.0,
+        "support_available": "none",
+        "confidence_to_follow_plan": 5.0,
+        "env_changes": ["切换任务"],
+    },
+    "bedtime_push": {
+        "scenario": "bedtime",
+        "child_state": "emotional_wave",
+        "sensory_overload_level": "light",
+        "transition_difficulty": 7.0,
+        "meltdown_count": 1,
+        "caregiver_stress": 7.0,
+        "caregiver_fatigue": 8.0,
+        "caregiver_sleep_quality": 3.0,
+        "support_available": "one",
+        "confidence_to_follow_plan": 4.0,
+        "env_changes": ["睡前切换"],
+    },
+    "homework_push": {
+        "scenario": "homework",
+        "child_state": "conflict",
+        "sensory_overload_level": "light",
+        "transition_difficulty": 6.0,
+        "meltdown_count": 1,
+        "caregiver_stress": 7.0,
+        "caregiver_fatigue": 6.0,
+        "caregiver_sleep_quality": 4.0,
+        "support_available": "one",
+        "confidence_to_follow_plan": 4.0,
+        "env_changes": ["学习任务"],
+    },
+    "outing_exit": {
+        "scenario": "outing",
+        "child_state": "sensory_overload",
+        "sensory_overload_level": "medium",
+        "transition_difficulty": 7.0,
+        "meltdown_count": 1,
+        "caregiver_stress": 7.0,
+        "caregiver_fatigue": 6.0,
+        "caregiver_sleep_quality": 5.0,
+        "support_available": "one",
+        "confidence_to_follow_plan": 4.0,
+        "env_changes": ["外出", "人多"],
+    },
+    "meltdown_now": {
+        "scenario": "meltdown",
+        "child_state": "meltdown",
+        "sensory_overload_level": "heavy",
+        "transition_difficulty": 9.0,
+        "meltdown_count": 3,
+        "caregiver_stress": 9.0,
+        "caregiver_fatigue": 8.0,
+        "caregiver_sleep_quality": 4.0,
+        "support_available": "one",
+        "confidence_to_follow_plan": 2.0,
+        "env_changes": ["持续升级"],
+    },
+    "wakeup_stall": {
+        "scenario": "transition",
+        "child_state": "transition_block",
+        "sensory_overload_level": "light",
+        "transition_difficulty": 7.0,
+        "meltdown_count": 0,
+        "caregiver_stress": 6.0,
+        "caregiver_fatigue": 7.0,
+        "caregiver_sleep_quality": 4.0,
+        "support_available": "one",
+        "confidence_to_follow_plan": 5.0,
+        "env_changes": ["起床"],
+    },
+    "meal_conflict": {
+        "scenario": "transition",
+        "child_state": "conflict",
+        "sensory_overload_level": "light",
+        "transition_difficulty": 6.0,
+        "meltdown_count": 1,
+        "caregiver_stress": 6.0,
+        "caregiver_fatigue": 6.0,
+        "caregiver_sleep_quality": 5.0,
+        "support_available": "one",
+        "confidence_to_follow_plan": 5.0,
+        "env_changes": ["吃饭"],
+    },
+    "screen_off": {
+        "scenario": "transition",
+        "child_state": "conflict",
+        "sensory_overload_level": "medium",
+        "transition_difficulty": 8.0,
+        "meltdown_count": 1,
+        "caregiver_stress": 7.0,
+        "caregiver_fatigue": 6.0,
+        "caregiver_sleep_quality": 5.0,
+        "support_available": "none",
+        "confidence_to_follow_plan": 4.0,
+        "env_changes": ["关屏"],
+    },
+    "bath_resistance": {
+        "scenario": "bedtime",
+        "child_state": "sensory_overload",
+        "sensory_overload_level": "medium",
+        "transition_difficulty": 7.0,
+        "meltdown_count": 1,
+        "caregiver_stress": 7.0,
+        "caregiver_fatigue": 7.0,
+        "caregiver_sleep_quality": 4.0,
+        "support_available": "one",
+        "confidence_to_follow_plan": 4.0,
+        "env_changes": ["洗澡"],
+    },
+    "waiting_public": {
+        "scenario": "outing",
+        "child_state": "emotional_wave",
+        "sensory_overload_level": "medium",
+        "transition_difficulty": 8.0,
+        "meltdown_count": 1,
+        "caregiver_stress": 7.0,
+        "caregiver_fatigue": 6.0,
+        "caregiver_sleep_quality": 5.0,
+        "support_available": "one",
+        "confidence_to_follow_plan": 4.0,
+        "env_changes": ["等待", "排队"],
+    },
+}
+
+FRICTION_PRESET_LABELS: dict[HighFrictionPreset, str] = {
+    "transition_now": "过渡",
+    "bedtime_push": "睡前",
+    "homework_push": "作业",
+    "outing_exit": "外出",
+    "meltdown_now": "崩溃",
+    "wakeup_stall": "起床",
+    "meal_conflict": "吃饭",
+    "screen_off": "关屏",
+    "bath_resistance": "洗澡",
+    "waiting_public": "等待",
+}
+ReviewChildStateAfter = Literal["settled", "partly_settled", "still_escalating"]
+ReviewCaregiverStateAfter = Literal["calmer", "same", "more_overloaded"]
+StrategyDecision = Literal["continue", "pause", "replace"]
 
 
 class LoginRequest(StrictModel):
@@ -58,6 +237,7 @@ class OnboardingSetupRequest(StrictModel):
     diagnosis_status: Literal["asd", "none", "under_assessment", "other"] | None = None
     diagnosis_notes: str = Field(default="", max_length=200)
     communication_level: Literal["none", "single_word", "short_sentence", "fluent"] | None = None
+    core_difficulties: list[str] = Field(default_factory=list, max_length=10)
     coexisting_conditions: list[str] = Field(default_factory=list, max_length=8)
     family_members: list[str] = Field(default_factory=list, max_length=8)
     interests: list[str] = Field(default_factory=list, max_length=8)
@@ -86,6 +266,10 @@ class OnboardingSetupRequest(StrictModel):
     parent_support_actions: list[str] = Field(default_factory=list, max_length=8)
     parent_emotional_supports: list[str] = Field(default_factory=list, max_length=8)
     available_supporters: list[str] = Field(default_factory=list, max_length=8)
+    supporter_availability: list[str] = Field(default_factory=list, max_length=8)
+    supporter_independent_care: Literal["can_alone", "needs_handoff", "cannot_alone", "unknown"] | None = None
+    major_incident_notes: str = Field(default="", max_length=300)
+    emergency_contacts: list[str] = Field(default_factory=list, max_length=8)
 
 
 class ChildProfileInput(StrictModel):
@@ -99,6 +283,7 @@ class ChildProfileInput(StrictModel):
     diagnosis_status: Literal["asd", "none", "under_assessment", "other"] | None = None
     diagnosis_notes: str = Field(default="", max_length=200)
     communication_level: Literal["none", "single_word", "short_sentence", "fluent"] = "short_sentence"
+    core_difficulties: list[str] = Field(default_factory=list, max_length=10)
     coexisting_conditions: list[str] = Field(default_factory=list, max_length=8)
     family_members: list[str] = Field(default_factory=list, max_length=8)
     interests: list[str] = Field(default_factory=list, max_length=8)
@@ -127,6 +312,10 @@ class ChildProfileInput(StrictModel):
     parent_support_actions: list[str] = Field(default_factory=list, max_length=8)
     parent_emotional_supports: list[str] = Field(default_factory=list, max_length=8)
     available_supporters: list[str] = Field(default_factory=list, max_length=8)
+    supporter_availability: list[str] = Field(default_factory=list, max_length=8)
+    supporter_independent_care: Literal["can_alone", "needs_handoff", "cannot_alone", "unknown"] | None = None
+    major_incident_notes: str = Field(default="", max_length=300)
+    emergency_contacts: list[str] = Field(default_factory=list, max_length=8)
 
 
 class ChildProfileRead(StrictModel):
@@ -161,31 +350,39 @@ class OnboardingSnapshot(StrictModel):
 
 class OnboardingSupportCard(StrictModel):
     card_id: str
-    icon: Literal["child", "parent", "team"]
+    icon: Literal["support", "handoff"]
     title: str
     summary: str
-    bullets: list[str] = Field(min_length=2, max_length=4)
+    one_liner: str
+    quick_actions: list[str] = Field(min_length=2, max_length=3)
+    sections: list["OnboardingSupportCardSection"] = Field(min_length=6, max_length=7)
+
+
+class OnboardingSupportCardSection(StrictModel):
+    key: str
+    title: str
+    items: list[str] = Field(min_length=1, max_length=3)
 
 
 class OnboardingSetupResponse(StrictModel):
     family: FamilyRead
     profile: ChildProfileRead
     snapshot: OnboardingSnapshot
-    support_cards: list[OnboardingSupportCard] = Field(min_length=3, max_length=3)
+    support_cards: list[OnboardingSupportCard] = Field(min_length=2, max_length=2)
 
 
 class CheckinCreate(StrictModel):
     family_id: int
     date: date_type | None = None
     child_sleep_hours: float = Field(ge=0, le=12)
-    child_sleep_quality: float = Field(ge=0, le=10)
+    child_sleep_quality: float | None = Field(default=None, ge=0, le=10)
     sleep_issues: list[str] = Field(default_factory=list, max_length=8)
     meltdown_count: int = Field(ge=0, le=3)
-    child_mood_state: Literal["stable", "sensitive", "anxious", "low_energy", "irritable"]
+    child_mood_state: Literal["stable", "sensitive", "anxious", "low_energy", "irritable"] = "stable"
     physical_discomforts: list[str] = Field(default_factory=list, max_length=8)
     aggressive_behaviors: list[str] = Field(default_factory=list, max_length=8)
     negative_emotions: list[str] = Field(default_factory=list, max_length=8)
-    transition_difficulty: float = Field(ge=0, le=10)
+    transition_difficulty: float | None = Field(default=None, ge=0, le=10)
     sensory_overload_level: Literal["none", "light", "medium", "heavy"]
     caregiver_stress: float = Field(ge=0, le=10)
     caregiver_sleep_quality: float = Field(ge=0, le=10)
@@ -214,14 +411,14 @@ class CheckinRead(StrictModel):
     checkin_id: int
     date: date_type
     child_sleep_hours: float
-    child_sleep_quality: float
+    child_sleep_quality: float | None
     sleep_issues: list[str] = Field(default_factory=list)
     meltdown_count: int
     child_mood_state: Literal["stable", "sensitive", "anxious", "low_energy", "irritable"]
     physical_discomforts: list[str] = Field(default_factory=list)
     aggressive_behaviors: list[str] = Field(default_factory=list)
     negative_emotions: list[str] = Field(default_factory=list)
-    transition_difficulty: float
+    transition_difficulty: float | None
     sensory_overload_level: Literal["none", "light", "medium", "heavy"]
     caregiver_stress: float
     caregiver_sleep_quality: float
@@ -230,9 +427,22 @@ class CheckinRead(StrictModel):
     today_learning_tasks: list[str] = Field(default_factory=list)
 
 
+class TodayReminderItem(StrictModel):
+    eyebrow: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    body: str = Field(min_length=1)
+
+
+class TodayFocusResponse(StrictModel):
+    today_one_thing: str = Field(min_length=1)
+    headline: str = Field(min_length=1)
+    reminders: list[TodayReminderItem] = Field(min_length=2, max_length=2)
+
+
 class DailyActionPlan(StrictModel):
     headline: str
     summary: str
+    reminders: list[TodayReminderItem] = Field(min_length=2, max_length=2)
     three_step_action: list[str] = Field(min_length=3, max_length=3)
     parent_phrase: str = Field(min_length=1)
     meltdown_fallback: list[str] = Field(min_length=3, max_length=3)
@@ -328,6 +538,22 @@ class FrictionSupportStep(StrictModel):
     why_it_fits: str = Field(min_length=1)
 
 
+class FrictionLowStimMode(StrictModel):
+    active: bool = False
+    headline: str = Field(min_length=1)
+    actions: list[str] = Field(min_length=3, max_length=4)
+
+
+class FrictionCrisisCard(StrictModel):
+    title: str = Field(min_length=1)
+    badges: list[str] = Field(min_length=2, max_length=4)
+    first_do: list[str] = Field(min_length=3, max_length=3)
+    donts: list[str] = Field(min_length=3, max_length=3)
+    say_this: list[str] = Field(min_length=2, max_length=3)
+    exit_plan: list[str] = Field(min_length=3, max_length=3)
+    help_now: list[str] = Field(min_length=1, max_length=2)
+
+
 class FrictionRespiteSuggestion(StrictModel):
     title: str = Field(min_length=1)
     summary: str = Field(min_length=1)
@@ -336,13 +562,18 @@ class FrictionRespiteSuggestion(StrictModel):
 
 
 class FrictionSupportPlan(StrictModel):
+    preset_label: str = Field(min_length=1)
     headline: str = Field(min_length=1)
     situation_summary: str = Field(min_length=1)
     child_signals: list[str] = Field(min_length=2, max_length=3)
     caregiver_signals: list[str] = Field(min_length=2, max_length=3)
     action_plan: list[FrictionSupportStep] = Field(min_length=3, max_length=3)
+    donts: list[str] = Field(min_length=3, max_length=4)
+    say_this: list[str] = Field(min_length=2, max_length=3)
     voice_guidance: list[str] = Field(min_length=3, max_length=3)
     exit_plan: list[str] = Field(min_length=3, max_length=3)
+    low_stim_mode: FrictionLowStimMode
+    crisis_card: FrictionCrisisCard
     respite_suggestion: FrictionRespiteSuggestion
     personalized_strategies: list[str] = Field(min_length=2, max_length=4)
     school_message: str = Field(min_length=1)
@@ -353,19 +584,35 @@ class FrictionSupportPlan(StrictModel):
 
 class FrictionSupportGenerateRequest(StrictModel):
     family_id: int
-    scenario: Literal["transition", "bedtime", "homework", "outing", "meltdown"]
-    child_state: Literal["emotional_wave", "sensory_overload", "conflict", "meltdown", "transition_block"]
-    sensory_overload_level: Literal["none", "light", "medium", "heavy"]
-    transition_difficulty: float = Field(ge=0, le=10)
-    meltdown_count: int = Field(ge=0, le=3)
-    caregiver_stress: float = Field(ge=0, le=10)
-    caregiver_fatigue: float = Field(ge=0, le=10)
-    caregiver_sleep_quality: float = Field(ge=0, le=10)
-    support_available: Literal["none", "one", "two_plus"]
-    confidence_to_follow_plan: float = Field(ge=0, le=10)
+    quick_preset: HighFrictionPreset | None = None
+    scenario: Literal["transition", "bedtime", "homework", "outing", "meltdown"] = "transition"
+    custom_scenario: str = Field(default="", max_length=80)
+    child_state: Literal["emotional_wave", "sensory_overload", "conflict", "meltdown", "transition_block"] = "transition_block"
+    sensory_overload_level: Literal["none", "light", "medium", "heavy"] = "medium"
+    transition_difficulty: float = Field(default=7, ge=0, le=10)
+    meltdown_count: int = Field(default=1, ge=0, le=3)
+    caregiver_stress: float = Field(default=7, ge=0, le=10)
+    caregiver_fatigue: float = Field(default=7, ge=0, le=10)
+    caregiver_sleep_quality: float = Field(default=4, ge=0, le=10)
+    support_available: Literal["none", "one", "two_plus"] = "none"
+    confidence_to_follow_plan: float = Field(default=4, ge=0, le=10)
     env_changes: list[str] = Field(default_factory=list)
     free_text: str = Field(default="", max_length=500)
+    low_stim_mode_requested: bool = False
     high_risk_selected: bool = False
+
+    @model_validator(mode="after")
+    def apply_quick_preset(self) -> "FrictionSupportGenerateRequest":
+        if not self.quick_preset:
+            return self
+
+        defaults = FRICTION_PRESET_DEFAULTS[self.quick_preset]
+        explicit_fields = self.model_fields_set
+        for field_name, value in defaults.items():
+            if field_name in explicit_fields:
+                continue
+            setattr(self, field_name, value.copy() if isinstance(value, list) else value)
+        return self
 
 
 class FrictionSupportGenerateResponse(StrictModel):
@@ -377,7 +624,16 @@ class FrictionSupportGenerateResponse(StrictModel):
 
 
 class SafetyBlockResponse(StrictModel):
+    severity: Literal["high_risk", "conflict", "quality"] = "quality"
     block_reason: str
+    safe_next_steps: list[str] = Field(min_length=3, max_length=4)
+    do_not_do: list[str] = Field(min_length=2, max_length=4)
+    say_this_now: str = Field(min_length=1)
+    exit_plan: list[str] = Field(min_length=3, max_length=3)
+    help_now: list[str] = Field(min_length=1, max_length=3)
+    low_stim_recommended: bool = True
+    conflict_explanation: str | None = None
+    alternatives: list[str] = Field(default_factory=list, max_length=3)
     environment_checklist: list[str] = Field(min_length=2)
     emergency_guidance: list[str] = Field(min_length=1)
     emergency_contact_template: str
@@ -470,58 +726,142 @@ class TrainingGoal(StrictModel):
     success_marker: str = Field(min_length=1, max_length=160)
 
 
-class TrainingFocusArea(StrictModel):
-    area_key: TrainingAreaKey
-    title: str = Field(min_length=1, max_length=64)
-    priority_score: int = Field(ge=0, le=100)
-    urgency: Literal["urgent", "high", "watch"]
-    why_now: list[str] = Field(min_length=2, max_length=4)
-    profile_signals: list[str] = Field(default_factory=list, max_length=3)
-    recent_signals: list[str] = Field(default_factory=list, max_length=3)
-    long_term_value: str = Field(min_length=1, max_length=160)
-
-
-class TrainingTask(StrictModel):
-    task_key: str = Field(min_length=1, max_length=64)
-    title: str = Field(min_length=1, max_length=80)
-    area_key: TrainingAreaKey
-    duration_minutes: int = Field(ge=5, le=30)
-    schedule_hint: str = Field(min_length=1, max_length=80)
-    objective: str = Field(min_length=1, max_length=160)
-    materials: list[str] = Field(min_length=1, max_length=4)
-    steps: list[str] = Field(min_length=3, max_length=4)
-    parent_script: str = Field(min_length=1, max_length=180)
-    coaching_tip: str = Field(min_length=1, max_length=180)
-    success_signals: list[str] = Field(min_length=2, max_length=3)
-    fallback_plan: str = Field(min_length=1, max_length=180)
-    difficulty: Literal["starter", "build", "advance"]
-
-
-class TrainingAdjustment(StrictModel):
-    title: str = Field(min_length=1, max_length=64)
-    suggestion: str = Field(min_length=1, max_length=180)
-    reason: str = Field(min_length=1, max_length=180)
-
-
-class TrainingProgressItem(StrictModel):
-    label: str = Field(min_length=1, max_length=32)
-    value: int = Field(ge=0, le=100)
-    target: int = Field(ge=1, le=100)
-    summary: str = Field(min_length=1, max_length=120)
-
-
 class TrainingFeedbackRead(StrictModel):
     feedback_id: int
     date: date_type
+    task_instance_id: int | None = None
     task_key: str
     task_title: str
     area_key: TrainingAreaKey
     completion_status: TrainingCompletionStatus
     child_response: TrainingChildResponse
     difficulty_rating: TrainingDifficultyRating
+    helpfulness: TrainingHelpfulness = "neutral"
+    obstacle_tag: TrainingObstacleTag = "none"
+    safety_pause: bool = False
     effect_score: float = Field(ge=0, le=10)
     parent_confidence: float = Field(ge=0, le=10)
     notes: str = Field(default="", max_length=500)
+
+
+class TrainingPriorityDomainCard(StrictModel):
+    area_key: TrainingAreaKey
+    title: str = Field(min_length=1, max_length=64)
+    priority_label: Literal["high", "medium"]
+    priority_score: int = Field(ge=0, le=100)
+    recommended_reason: str = Field(min_length=1, max_length=180)
+    current_stage: TrainingSkillStage
+    current_difficulty: Literal["starter", "build", "advance"]
+    weekly_sessions_count: int = Field(ge=0)
+    has_today_task: bool
+    current_status: str = Field(min_length=1, max_length=180)
+    improvement_value: str = Field(min_length=1, max_length=180)
+
+
+class DailyTrainingTaskRead(StrictModel):
+    task_instance_id: int
+    area_key: TrainingAreaKey
+    area_title: str = Field(min_length=1, max_length=64)
+    title: str = Field(min_length=1, max_length=80)
+    today_goal: str = Field(min_length=1, max_length=180)
+    training_scene: str = Field(min_length=1, max_length=120)
+    schedule_hint: str = Field(min_length=1, max_length=120)
+    steps: list[str] = Field(min_length=3, max_length=5)
+    parent_script: str = Field(min_length=1, max_length=180)
+    duration_minutes: int = Field(ge=3, le=30)
+    difficulty: Literal["starter", "build", "advance"]
+    materials: list[str] = Field(default_factory=list, max_length=5)
+    fallback_plan: str = Field(min_length=1, max_length=180)
+    coaching_tip: str = Field(min_length=1, max_length=180)
+    status: TrainingTaskStatus
+    reminder_status: TrainingReminderStatus
+    reminder_at: datetime_type | None = None
+    feedback_ready: bool = True
+    highlight: bool = False
+
+
+class TrainingTrendPoint(StrictModel):
+    label: str = Field(min_length=1, max_length=16)
+    completed_count: int = Field(ge=0)
+    task_count: int = Field(ge=0)
+    completion_rate: int = Field(ge=0, le=100)
+
+
+class TrainingMethodInsight(StrictModel):
+    title: str = Field(min_length=1, max_length=80)
+    summary: str = Field(min_length=1, max_length=180)
+    evidence_count: int = Field(ge=0)
+    effectiveness_score: int = Field(ge=0, le=100)
+
+
+class TrainingProgressOverview(StrictModel):
+    streak_days: int = Field(ge=0)
+    weekly_completion_count: int = Field(ge=0)
+    seven_day_completion_rate: int = Field(ge=0, le=100)
+    recent_trend: list[TrainingTrendPoint] = Field(default_factory=list, max_length=7)
+    best_method_summary: str = Field(min_length=1, max_length=180)
+
+
+class TrainingAdjustmentLogRead(StrictModel):
+    adjustment_id: int
+    area_key: TrainingAreaKey
+    title: str = Field(min_length=1, max_length=128)
+    summary: str = Field(min_length=1, max_length=240)
+    trigger: str = Field(min_length=1, max_length=64)
+    before_state: dict[str, Any] = Field(default_factory=dict)
+    after_state: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime_type
+
+
+class TrainingDashboardSummary(StrictModel):
+    week_completed_count: int = Field(ge=0)
+    priority_domain_count: int = Field(ge=0, le=3)
+    streak_days: int = Field(ge=0)
+    current_load_level: TrainingLoadLevel
+    summary_text: str = Field(min_length=1, max_length=240)
+
+
+class TrainingDomainProgress(StrictModel):
+    current_stage: TrainingSkillStage
+    current_difficulty: Literal["starter", "build", "advance"]
+    weekly_sessions_count: int = Field(ge=0)
+    total_completed_count: int = Field(ge=0)
+    recent_completion_rate: int = Field(ge=0, le=100)
+    recent_effective_rate: int = Field(ge=0, le=100)
+
+
+class TrainingDomainDetailResponse(StrictModel):
+    family_id: int
+    area_key: TrainingAreaKey
+    title: str = Field(min_length=1, max_length=64)
+    current_stage: TrainingSkillStage
+    current_difficulty: Literal["starter", "build", "advance"]
+    importance_summary: str = Field(min_length=1, max_length=180)
+    related_daily_challenges: list[str] = Field(min_length=2, max_length=4)
+    reason_for_priority: list[str] = Field(min_length=2, max_length=4)
+    current_risks: list[str] = Field(min_length=1, max_length=3)
+    short_term_goal: TrainingGoal
+    medium_term_goal: TrainingGoal
+    training_principles: list[str] = Field(min_length=3, max_length=5)
+    suggested_scenarios: list[str] = Field(min_length=2, max_length=4)
+    parent_steps: list[str] = Field(min_length=3, max_length=5)
+    script_examples: list[str] = Field(min_length=2, max_length=3)
+    fallback_options: list[str] = Field(min_length=2, max_length=3)
+    cautions: list[str] = Field(min_length=2, max_length=4)
+    progress: TrainingDomainProgress
+    recent_feedbacks: list[TrainingFeedbackRead] = Field(default_factory=list, max_length=6)
+    adjustment_logs: list[TrainingAdjustmentLogRead] = Field(default_factory=list, max_length=6)
+
+
+class TrainingDashboardResponse(StrictModel):
+    family_id: int
+    summary: TrainingDashboardSummary
+    priority_domains: list[TrainingPriorityDomainCard] = Field(min_length=1, max_length=3)
+    today_tasks: list[DailyTrainingTaskRead] = Field(default_factory=list, max_length=3)
+    progress_overview: TrainingProgressOverview
+    method_insights: list[TrainingMethodInsight] = Field(default_factory=list, max_length=3)
+    recent_adjustments: list[TrainingAdjustmentLogRead] = Field(default_factory=list, max_length=5)
+    safety_alert: str | None = None
 
 
 class TrainingPlanGenerateRequest(StrictModel):
@@ -529,42 +869,36 @@ class TrainingPlanGenerateRequest(StrictModel):
     extra_context: str = Field(default="", max_length=500)
 
 
-class TrainingPlanResponse(StrictModel):
-    family_id: int
-    child_summary: str = Field(min_length=1)
-    plan_summary: str = Field(min_length=1)
-    primary_need: str = Field(min_length=1, max_length=64)
-    load_level: Literal["light", "standard", "adaptive"]
-    focus_areas: list[TrainingFocusArea] = Field(min_length=1, max_length=3)
-    short_term_goals: list[TrainingGoal] = Field(min_length=2, max_length=3)
-    long_term_goals: list[TrainingGoal] = Field(min_length=2, max_length=3)
-    daily_tasks: list[TrainingTask] = Field(min_length=3, max_length=3)
-    guidance: list[str] = Field(min_length=3, max_length=5)
-    adjustments: list[TrainingAdjustment] = Field(min_length=2, max_length=4)
-    progress: list[TrainingProgressItem] = Field(min_length=3, max_length=3)
-    recent_feedback_summary: str = Field(min_length=1)
-    recent_feedbacks: list[TrainingFeedbackRead] = Field(default_factory=list, max_length=6)
-
-
 class TrainingTaskFeedbackRequest(StrictModel):
     family_id: int
     date: date_type | None = None
-    task_key: str = Field(min_length=1, max_length=64)
-    task_title: str = Field(min_length=1, max_length=80)
-    area_key: TrainingAreaKey
+    task_instance_id: int
     completion_status: TrainingCompletionStatus
     child_response: TrainingChildResponse
-    difficulty_rating: TrainingDifficultyRating
-    effect_score: float = Field(ge=0, le=10)
-    parent_confidence: float = Field(ge=0, le=10)
+    helpfulness: TrainingHelpfulness
+    obstacle_tag: TrainingObstacleTag = "none"
+    safety_pause: bool = False
     notes: str = Field(default="", max_length=500)
 
 
 class TrainingTaskFeedbackResponse(StrictModel):
     feedback_id: int
-    next_adjustment: str
-    progress_summary: str
-    plan: TrainingPlanResponse
+    adjustment_summary: str
+    safety_alert: str | None = None
+    dashboard: TrainingDashboardResponse
+
+
+class TrainingReminderRequest(StrictModel):
+    family_id: int
+    task_instance_id: int
+    remind_at: datetime_type | None = None
+
+
+class TrainingReminderResponse(StrictModel):
+    task_instance_id: int
+    reminder_status: TrainingReminderStatus
+    remind_at: datetime_type | None = None
+    dashboard: TrainingDashboardResponse
 
 
 class PlanRead(StrictModel):
@@ -580,10 +914,14 @@ class ReviewCreate(StrictModel):
     scenario: str = ""
     intensity: Literal["light", "medium", "heavy"] = "medium"
     triggers: list[str] = Field(default_factory=list)
-    card_ids: list[str] = Field(min_length=1)
+    card_ids: list[str] = Field(default_factory=list)
     outcome_score: int = Field(ge=-2, le=2)
-    notes: str = ""
-    followup_action: str = ""
+    child_state_after: ReviewChildStateAfter = "partly_settled"
+    caregiver_state_after: ReviewCaregiverStateAfter = "same"
+    recommendation: StrategyDecision = "continue"
+    response_action: str = Field(default="", max_length=300)
+    notes: str = Field(default="", max_length=500)
+    followup_action: str = Field(default="", max_length=180)
 
 
 class ReviewResponse(StrictModel):
@@ -592,9 +930,18 @@ class ReviewResponse(StrictModel):
     updated_weights: dict[str, float]
 
 
+class ReplayStep(StrictModel):
+    label: str = Field(min_length=1, max_length=16)
+    value: str = Field(min_length=1, max_length=200)
+
+
 class ReplayResponse(StrictModel):
     incident_id: int
-    timeline: list[str]
+    scenario: str
+    happened_at: datetime_type | None = None
+    recommendation: StrategyDecision
+    strategy_titles: list[str] = Field(default_factory=list, max_length=3)
+    timeline: list[ReplayStep] = Field(min_length=4, max_length=4)
     next_improvement: str
 
 
@@ -616,6 +963,11 @@ class StrategyInsight(StrictModel):
     summary: str
     evidence_count: int = Field(ge=0)
     avg_outcome: float = Field(ge=-2, le=2)
+    success_rate: int = Field(ge=0, le=100)
+    fit_rate: int = Field(ge=0, le=100)
+    applicability: Literal["high", "medium", "low"]
+    recommendation: StrategyDecision
+    why_ranked: list[str] = Field(min_length=2, max_length=3)
 
 
 class ActionSuggestion(StrictModel):
@@ -623,6 +975,7 @@ class ActionSuggestion(StrictModel):
     title: str
     summary: str
     rationale: str
+    recommendation: StrategyDecision = "continue"
 
 
 class ReportFeedbackSummary(StrictModel):
@@ -639,6 +992,15 @@ class ReportFeedbackState(StrictModel):
     feedback: Literal["effective", "not_effective", "continue", "adjust"]
 
 
+class TrendDeltaItem(StrictModel):
+    title: str
+    summary: str
+    current_value: float = Field(ge=0)
+    previous_value: float = Field(ge=0)
+    direction: Literal["up", "down", "flat"]
+    unit: str
+
+
 class WeeklyReportResponse(StrictModel):
     family_id: int
     week_start: date_type
@@ -649,6 +1011,7 @@ class WeeklyReportResponse(StrictModel):
     highest_risk_scenario: str
     stress_trend: list[ReportMetricPoint] = Field(default_factory=list)
     meltdown_trend: list[ReportMetricPoint] = Field(default_factory=list)
+    week_over_week: list[TrendDeltaItem] = Field(default_factory=list, max_length=3)
     task_completion_score: int = Field(ge=0, le=100)
     task_summary: str
     completed_tasks: list[TaskEffectItem] = Field(default_factory=list)
@@ -658,7 +1021,9 @@ class WeeklyReportResponse(StrictModel):
     caregiver_stress_avg: float = Field(ge=0, le=10)
     caregiver_stress_peak: float = Field(ge=0, le=10)
     caregiver_sleep_avg: float = Field(ge=0, le=10)
+    strategy_ranking_summary: str
     strategy_top3: list[StrategyInsight] = Field(default_factory=list)
+    replay_items: list[ReplayResponse] = Field(default_factory=list, max_length=3)
     next_actions: list[ActionSuggestion] = Field(default_factory=list)
     one_thing_next_week: str
     feedback_summary: ReportFeedbackSummary
@@ -696,6 +1061,7 @@ class MonthlyReportResponse(StrictModel):
     conflict_change_summary: str
     task_completion_summary: str
     long_term_trends: list[MonthlyTrendItem] = Field(default_factory=list)
+    strategy_ranking_summary: str
     successful_methods: list[StrategyInsight] = Field(default_factory=list)
     next_month_plan: list[ActionSuggestion] = Field(default_factory=list)
     history: list[MonthlyHistoryPoint] = Field(default_factory=list)

@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.main import app
-from app.models import Review
+from app.models import IncidentLog, Review
 
 
 def _auth_headers(client: TestClient) -> dict[str, str]:
@@ -47,8 +47,12 @@ def test_friction_support_generate_and_feedback(db_session: Session, seeded_fami
         assert generated["incident_id"] > 0
         assert generated["risk"]["risk_level"] in {"green", "yellow", "red"}
         assert len(generated["support"]["action_plan"]) == 3
+        assert len(generated["support"]["donts"]) >= 3
+        assert len(generated["support"]["say_this"]) >= 2
         assert len(generated["support"]["voice_guidance"]) == 3
         assert len(generated["support"]["exit_plan"]) == 3
+        assert generated["support"]["low_stim_mode"]["headline"]
+        assert len(generated["support"]["crisis_card"]["first_do"]) == 3
         assert generated["support"]["school_message"]
         assert len(generated["support"]["source_card_ids"]) >= 1
 
@@ -77,3 +81,30 @@ def test_friction_support_generate_and_feedback(db_session: Session, seeded_fami
     reviews = db_session.scalars(select(Review).where(Review.incident_id == generated["incident_id"])).all()
     assert len(reviews) == 1
     assert reviews[0].followup_action
+
+
+def test_friction_support_custom_scenario_persists_display_label(db_session: Session, seeded_family) -> None:
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/scripts/friction-support",
+            json={
+                "family_id": seeded_family.family_id,
+                "scenario": "outing",
+                "custom_scenario": "理发店",
+                "child_state": "conflict",
+                "support_available": "one",
+                "free_text": "进门后开始抗拒穿罩衣。",
+            },
+            headers=_auth_headers(client),
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["blocked"] is False
+    assert body["support"]["preset_label"] == "理发店"
+    assert body["support"]["headline"].startswith("理发店高摩擦时刻")
+
+    incident = db_session.get(IncidentLog, body["incident_id"])
+    assert incident is not None
+    assert incident.scenario == "理发店"
+    assert incident.selected_resources["base_scenario"] == "outing"

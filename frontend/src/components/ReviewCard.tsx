@@ -1,23 +1,27 @@
+import type { ReactNode } from 'react';
+
 import type {
   ActionSuggestion,
   FeedbackValue,
   MonthlyHistoryPoint,
   MonthlyReport,
   MonthlyTrendItem,
+  ReplayItem,
+  ReportMetricPoint,
   ReportFeedbackState,
   ReportTargetKind,
   StrategyInsight,
-  TaskEffectItem,
+  TrendDeltaItem,
   WeeklyReport
 } from '../lib/types';
+import { getScenarioLabel } from '../lib/flow';
 
 interface Props {
+  activePeriod: 'weekly' | 'monthly';
   weeklyReport: WeeklyReport | null;
   monthlyReport: MonthlyReport | null;
   loading: boolean;
-  exportingWeekly: boolean;
   feedbackSavingKey: string;
-  onExportWeekly: () => void;
   onFeedback: (payload: {
     periodType: 'weekly' | 'monthly';
     periodStart: string;
@@ -41,23 +45,129 @@ function findFeedback(
   return states.find((item) => item.target_kind === targetKind && item.target_key === targetKey)?.feedback;
 }
 
-function MetricBars({ points, maxValue }: { points: { label: string; value: number }[]; maxValue?: number }) {
+const recommendationLabel: Record<'continue' | 'pause' | 'replace', string> = {
+  continue: '继续',
+  pause: '暂停',
+  replace: '替换'
+};
+
+const applicabilityLabel: Record<'high' | 'medium' | 'low', string> = {
+  high: '高适配',
+  medium: '中适配',
+  low: '低适配'
+};
+
+const directionLabel: Record<'up' | 'down' | 'flat', string> = {
+  up: '上升',
+  down: '下降',
+  flat: '持平'
+};
+
+function ScoreRing({
+  value,
+  max = 100,
+  tone = 'warm'
+}: {
+  value: number;
+  max?: number;
+  tone?: 'warm' | 'calm';
+}) {
+  const safeValue = Math.max(0, Math.min(Math.round(value), max));
+  const size = 104;
+  const stroke = 10;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (safeValue / max) * circumference;
+
+  return (
+    <div className={`score-ring ${tone === 'calm' ? 'calm' : ''}`}>
+      <svg viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+        <circle className="score-ring-track" cx={size / 2} cy={size / 2} r={radius} strokeWidth={stroke} />
+        <circle
+          className="score-ring-fill"
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          strokeWidth={stroke}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+        />
+      </svg>
+      <div className="score-ring-value">
+        <strong>{safeValue}</strong>
+        <span>/ {max}</span>
+      </div>
+    </div>
+  );
+}
+
+function MiniBars({
+  points,
+  maxValue
+}: {
+  points: ReportMetricPoint[];
+  maxValue?: number;
+}) {
   const ceiling = maxValue ?? Math.max(...points.map((item) => item.value), 1);
 
   return (
-    <div className="metric-bars">
+    <div className="mini-bars">
       {points.map((point) => {
-        const height = ceiling === 0 ? 8 : Math.max((point.value / ceiling) * 100, point.value > 0 ? 18 : 8);
+        const height = ceiling === 0 ? 10 : Math.max((point.value / ceiling) * 100, point.value > 0 ? 16 : 10);
         return (
-          <div className="metric-bar-col" key={point.label}>
-            <span className="metric-bar-value">{point.value}</span>
-            <div className="metric-bar-track">
-              <div className="metric-bar-fill" style={{ height: `${height}%` }} />
+          <div className="mini-bar-col" key={point.label}>
+            <div className="mini-bar-track">
+              <div className="mini-bar-fill" style={{ height: `${height}%` }} />
             </div>
-            <span className="metric-bar-label">{point.label}</span>
+            <span>{point.label}</span>
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function HistoryBars({ items }: { items: MonthlyHistoryPoint[] }) {
+  const recent = items.slice(-4);
+  const ceiling = Math.max(...recent.map((item) => item.task_completion_rate), 100);
+
+  return (
+    <div className="history-bars">
+      {recent.map((item) => {
+        const height = Math.max((item.task_completion_rate / ceiling) * 100, 18);
+        return (
+          <div className="history-bar-col" key={item.label}>
+            <span className="history-bar-value">{item.task_completion_rate}</span>
+            <div className="history-bar-track">
+              <div className="history-bar-fill" style={{ height: `${height}%` }} />
+            </div>
+            <span className="history-bar-label">{item.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function DashboardMetric({
+  label,
+  value,
+  meta,
+  accent,
+  children
+}: {
+  label: string;
+  value?: string;
+  meta?: string;
+  accent?: boolean;
+  children?: ReactNode;
+}) {
+  return (
+    <div className={`dashboard-metric-card ${accent ? 'accent' : ''}`}>
+      <span className="label">{label}</span>
+      {value ? <h4>{value}</h4> : null}
+      {meta ? <p className="muted">{meta}</p> : null}
+      {children}
     </div>
   );
 }
@@ -101,27 +211,6 @@ function FeedbackButtons({
   );
 }
 
-function TaskGroup({ title, items }: { title: string; items: TaskEffectItem[] }) {
-  return (
-    <div className="task-group">
-      <div className="task-group-head">
-        <h4>{title}</h4>
-        <span className="muted">{items.length} 条</span>
-      </div>
-      {items.length ? (
-        items.map((item) => (
-          <div className="task-item" key={`${title}-${item.title}`}>
-            <strong>{item.title}</strong>
-            <p>{item.summary}</p>
-          </div>
-        ))
-      ) : (
-        <div className="muted">本周期暂无相关记录。</div>
-      )}
-    </div>
-  );
-}
-
 function StrategyList({
   items,
   states,
@@ -145,6 +234,10 @@ function StrategyList({
   positiveValue: FeedbackValue;
   negativeValue: FeedbackValue;
 }) {
+  if (!items.length) {
+    return <div className="muted">当前还没有足够样本。</div>;
+  }
+
   return (
     <div className="insight-stack">
       {items.map((item) => {
@@ -152,11 +245,13 @@ function StrategyList({
         return (
           <div className="insight-card" key={item.target_key}>
             <div className="insight-card-top">
-              <div>
-                <h4>{item.title}</h4>
-                <p>{item.summary}</p>
-              </div>
-              <span className="status-pill">{item.evidence_count} 次记录</span>
+              <h4>{item.title}</h4>
+              <span className="status-pill">{recommendationLabel[item.recommendation]}</span>
+            </div>
+            <div className="chip-row">
+              <span className="info-chip">{item.evidence_count} 次</span>
+              <span className="info-chip">{item.success_rate}%</span>
+              <span className="info-chip">{applicabilityLabel[item.applicability]}</span>
             </div>
             <FeedbackButtons
               activeValue={findFeedback(states, 'strategy', item.target_key)}
@@ -198,6 +293,10 @@ function ActionList({
   feedbackSavingKey: string;
   onFeedback: Props['onFeedback'];
 }) {
+  if (!items.length) {
+    return <div className="muted">当前没有新的行动建议。</div>;
+  }
+
   return (
     <div className="insight-stack">
       {items.map((item) => {
@@ -205,17 +304,17 @@ function ActionList({
         return (
           <div className="insight-card" key={item.target_key}>
             <div className="insight-card-top">
-              <div>
-                <h4>{item.title}</h4>
-                <p>{item.summary}</p>
-              </div>
+              <h4>{item.title}</h4>
+              <span className="status-pill">{recommendationLabel[item.recommendation]}</span>
             </div>
-            <p className="muted">{item.rationale}</p>
+            <div className="chip-row">
+              <span className="info-chip soft">{item.summary}</span>
+            </div>
             <FeedbackButtons
               activeValue={findFeedback(states, 'action', item.target_key)}
               saving={saving}
-              positiveLabel="继续执行"
-              negativeLabel="调整计划"
+              positiveLabel="继续"
+              negativeLabel="调整"
               positiveValue="continue"
               negativeValue="adjust"
               onChoose={(feedback) =>
@@ -243,47 +342,42 @@ function TrendCards({ items }: { items: MonthlyTrendItem[] }) {
         <div className="trend-card" key={item.title}>
           <div className="trend-card-top">
             <h4>{item.title}</h4>
-            <span className={`status-pill ${item.direction === 'up' ? 'warning' : ''}`}>
+            <span className={`status-pill ${item.direction === 'up' ? 'warning' : ''}`}>{directionLabel[item.direction]}</span>
+          </div>
+          <div className="trend-card-values">
+            <strong>
               {item.current_value}
+              {item.unit}
+            </strong>
+            <span className="muted">
+              上期 {item.previous_value}
               {item.unit}
             </span>
           </div>
-          <p>{item.summary}</p>
-          <div className="muted">
-            上期：{item.previous_value}
-            {item.unit}
-          </div>
         </div>
       ))}
     </div>
   );
 }
 
-function HistoryCards({ items }: { items: MonthlyHistoryPoint[] }) {
+function TrendDeltaCards({ items }: { items: TrendDeltaItem[] }) {
   return (
-    <div className="history-grid">
+    <div className="trend-card-grid">
       {items.map((item) => (
-        <div className="history-card" key={item.label}>
-          <div className="history-card-top">
-            <h4>{item.label}</h4>
-            <span className="status-pill">{item.task_completion_rate}/100</span>
+        <div className="trend-card" key={item.title}>
+          <div className="trend-card-top">
+            <h4>{item.title}</h4>
+            <span className={`status-pill ${item.direction === 'up' ? 'warning' : ''}`}>{directionLabel[item.direction]}</span>
           </div>
-          <div className="history-stat">
-            <span className="label">压力均值</span>
-            <strong>{item.avg_stress}/10</strong>
-          </div>
-          <div className="history-stat">
-            <span className="label">冲突次数</span>
-            <strong>{item.conflict_count}</strong>
-          </div>
-          <div className="history-progress">
-            <div className="history-progress-label">
-              <span>任务完成度</span>
-              <span>{item.task_completion_rate}%</span>
-            </div>
-            <div className="history-progress-track">
-              <div className="history-progress-fill" style={{ width: `${item.task_completion_rate}%` }} />
-            </div>
+          <div className="trend-card-values">
+            <strong>
+              {item.current_value}
+              {item.unit}
+            </strong>
+            <span className="muted">
+              上周 {item.previous_value}
+              {item.unit}
+            </span>
           </div>
         </div>
       ))}
@@ -291,227 +385,190 @@ function HistoryCards({ items }: { items: MonthlyHistoryPoint[] }) {
   );
 }
 
-export function ReviewCard({
-  weeklyReport,
-  monthlyReport,
-  loading,
-  exportingWeekly,
+function ReplayList({ items }: { items: ReplayItem[] }) {
+  return (
+    <div className="insight-stack">
+      {items.map((item) => (
+        <div className="insight-card" key={item.incident_id}>
+          <div className="insight-card-top">
+            <h4>{item.scenario}回放</h4>
+            <span className="status-pill">{recommendationLabel[item.recommendation]}</span>
+          </div>
+          <div className="training-goal-stack">
+            {item.timeline.map((step) => (
+              <div key={`${item.incident_id}-${step.label}`} className="training-goal-card">
+                <strong>{step.label}</strong>
+                <p>{step.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function WeeklyReviewView({
+  report,
   feedbackSavingKey,
-  onExportWeekly,
   onFeedback
-}: Props) {
+}: {
+  report: WeeklyReport;
+  feedbackSavingKey: string;
+  onFeedback: Props['onFeedback'];
+}) {
+  const highestRiskScenarioLabel = getScenarioLabel(report.highest_risk_scenario);
+
+  return (
+    <div className="panel report-card">
+      <div className="review-summary-hero">
+        <div>
+          <p className="eyebrow">本周复盘</p>
+          <h3>{formatDateRange(report.week_start, report.week_end)}</h3>
+        </div>
+        <span className="status-pill">{highestRiskScenarioLabel}</span>
+      </div>
+
+      <div className="review-dashboard-grid">
+        <DashboardMetric label="完成度" accent>
+          <ScoreRing value={report.task_completion_score} />
+        </DashboardMetric>
+        <DashboardMetric label="压力趋势" meta="7天">
+          <MiniBars points={report.stress_trend} maxValue={10} />
+        </DashboardMetric>
+        <DashboardMetric label="升级次数" meta="7天">
+          <MiniBars points={report.meltdown_trend} maxValue={3} />
+        </DashboardMetric>
+        <DashboardMetric label="风险焦点" value={highestRiskScenarioLabel}>
+          <div className="chip-row">
+            {report.trigger_top3.length ? (
+              report.trigger_top3.map((trigger) => (
+                <span className="info-chip" key={trigger}>
+                  {trigger}
+                </span>
+              ))
+            ) : (
+              <span className="muted">样本不足</span>
+            )}
+          </div>
+        </DashboardMetric>
+      </div>
+
+      <div className="review-priority-grid compact">
+        <div className="review-priority-card accent">
+          <span className="label">结论</span>
+          <h4>{report.task_summary}</h4>
+        </div>
+        <div className="review-priority-card accent">
+          <span className="label">下周只做一件</span>
+          <h4>{report.one_thing_next_week}</h4>
+        </div>
+      </div>
+
+      <details className="review-secondary-panel">
+        <summary>查看次要信息</summary>
+        <div className="review-secondary-body">
+          <div className="report-section">
+            <h4>趋势变化</h4>
+            {report.week_over_week.length ? <TrendDeltaCards items={report.week_over_week} /> : <div className="muted">暂无变化数据。</div>}
+          </div>
+          <div className="report-section">
+            <h4>事件回放</h4>
+            {report.replay_items.length ? <ReplayList items={report.replay_items} /> : <div className="muted">本周还没有可回放事件。</div>}
+          </div>
+          <div className="review-secondary-copy">
+            <p>{report.caregiver_summary}</p>
+            <p>{report.trigger_summary}</p>
+            <p>{report.child_emotion_summary}</p>
+          </div>
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function MonthlyReviewView({
+  report,
+  feedbackSavingKey,
+  onFeedback
+}: {
+  report: MonthlyReport;
+  feedbackSavingKey: string;
+  onFeedback: Props['onFeedback'];
+}) {
+  return (
+    <div className="panel report-card">
+      <div className="review-summary-hero">
+        <div>
+          <p className="eyebrow">本月回看</p>
+          <h3>{formatDateRange(report.month_start, report.month_end)}</h3>
+        </div>
+        <span className="status-pill">长期观察</span>
+      </div>
+
+      <div className="review-dashboard-grid monthly">
+        <DashboardMetric
+          label="压力变化"
+          value={directionLabel[report.long_term_trends[0]?.direction ?? 'flat']}
+          meta={report.stress_change_summary}
+        />
+        <DashboardMetric
+          label="冲突变化"
+          value={directionLabel[report.long_term_trends[1]?.direction ?? 'flat']}
+          meta={report.conflict_change_summary}
+        />
+        <DashboardMetric
+          label="执行趋势"
+          value={directionLabel[report.long_term_trends[2]?.direction ?? 'flat']}
+          meta={report.task_completion_summary}
+        />
+        <DashboardMetric label="近月执行率" accent>
+          <HistoryBars items={report.history} />
+        </DashboardMetric>
+      </div>
+
+      <div className="review-priority-grid compact">
+        <div className="review-priority-card accent">
+          <span className="label">月结论</span>
+          <h4>{report.overview_summary}</h4>
+        </div>
+      </div>
+
+      <details className="review-secondary-panel">
+        <summary>查看长期趋势</summary>
+        <div className="review-secondary-body">
+          {report.long_term_trends.length ? <TrendCards items={report.long_term_trends} /> : <div className="muted">暂无长期趋势数据。</div>}
+          <div className="review-secondary-copy">
+            <p>{report.stress_change_summary}</p>
+            <p>{report.conflict_change_summary}</p>
+            <p>{report.task_completion_summary}</p>
+          </div>
+        </div>
+      </details>
+    </div>
+  );
+}
+
+export function ReviewCard({ activePeriod, weeklyReport, monthlyReport, loading, feedbackSavingKey, onFeedback }: Props) {
   if (loading && !weeklyReport && !monthlyReport) {
-    return <div className="panel muted">正在生成周报与月报...</div>;
+    return <div className="panel muted">正在生成复盘...</div>;
   }
 
   if (!weeklyReport && !monthlyReport) {
-    return <div className="panel muted">先补一条复盘，再查看周期报告。</div>;
+    return <div className="panel muted">先补一条复盘，再查看周期总结。</div>;
   }
 
-  return (
-    <div className="review-report-grid">
-      {weeklyReport ? (
-        <div className="panel report-card">
-          <div className="report-card-header">
-            <div>
-              <p className="eyebrow">Weekly Review</p>
-              <h3>每周总结</h3>
-              <p className="muted">{formatDateRange(weeklyReport.week_start, weeklyReport.week_end)}</p>
-            </div>
-            <div className="report-header-actions">
-              <span className="status-pill">导出 {weeklyReport.export_count} 次</span>
-              <button className="btn secondary" onClick={onExportWeekly} disabled={exportingWeekly}>
-                {exportingWeekly ? '导出中...' : '再次导出'}
-              </button>
-            </div>
-          </div>
+  if (activePeriod === 'monthly' && monthlyReport) {
+    return <MonthlyReviewView report={monthlyReport} feedbackSavingKey={feedbackSavingKey} onFeedback={onFeedback} />;
+  }
 
-          <div className="report-kpi-grid">
-            <div className="metric-card">
-              <span className="label">本周完成度</span>
-              <strong>{weeklyReport.task_completion_score}/100</strong>
-              <p>{weeklyReport.task_summary}</p>
-            </div>
-            <div className="metric-card">
-              <span className="label">最高风险场景</span>
-              <strong>{weeklyReport.highest_risk_scenario}</strong>
-              <p>{weeklyReport.one_thing_next_week}</p>
-            </div>
-            <div className="metric-card">
-              <span className="label">家长压力均值</span>
-              <strong>{weeklyReport.caregiver_stress_avg}/10</strong>
-              <p>峰值 {weeklyReport.caregiver_stress_peak}/10，恢复 {weeklyReport.caregiver_sleep_avg}/10</p>
-            </div>
-          </div>
+  if (weeklyReport) {
+    return <WeeklyReviewView report={weeklyReport} feedbackSavingKey={feedbackSavingKey} onFeedback={onFeedback} />;
+  }
 
-          <div className="report-section">
-            <div className="report-section-head">
-              <h4>触发器与情绪模式</h4>
-              <div className="chip-row">
-                {weeklyReport.trigger_top3.map((trigger) => (
-                  <span className="info-chip" key={trigger}>
-                    {trigger}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <p>{weeklyReport.trigger_summary}</p>
-            <p>{weeklyReport.child_emotion_summary}</p>
-            <div className="trend-grid">
-              <div className="trend-box">
-                <div className="trend-box-head">
-                  <h4>家长压力趋势</h4>
-                  <span className="muted">过去 7 天</span>
-                </div>
-                <MetricBars points={weeklyReport.stress_trend} maxValue={10} />
-              </div>
-              <div className="trend-box">
-                <div className="trend-box-head">
-                  <h4>情绪升级次数</h4>
-                  <span className="muted">过去 7 天</span>
-                </div>
-                <MetricBars points={weeklyReport.meltdown_trend} maxValue={3} />
-              </div>
-            </div>
-          </div>
+  if (monthlyReport) {
+    return <MonthlyReviewView report={monthlyReport} feedbackSavingKey={feedbackSavingKey} onFeedback={onFeedback} />;
+  }
 
-          <div className="report-section">
-            <h4>任务完成情况与效果</h4>
-            <div className="task-grid">
-              <TaskGroup title="执行稳定" items={weeklyReport.completed_tasks} />
-              <TaskGroup title="部分完成" items={weeklyReport.partial_tasks} />
-              <TaskGroup title="需要重试" items={weeklyReport.retry_tasks} />
-            </div>
-          </div>
-
-          <div className="report-section">
-            <h4>家长自评摘要</h4>
-            <div className="quote-box">{weeklyReport.caregiver_summary}</div>
-          </div>
-
-          <div className="report-section">
-            <div className="report-section-head">
-              <h4>本周有效策略 TOP3</h4>
-              <div className="feedback-summary">
-                <span className="status-pill">有效 {weeklyReport.feedback_summary.effective_count}</span>
-                <span className="status-pill warning">未按预期 {weeklyReport.feedback_summary.not_effective_count}</span>
-              </div>
-            </div>
-            <StrategyList
-              items={weeklyReport.strategy_top3}
-              states={weeklyReport.feedback_states}
-              periodType="weekly"
-              periodStart={weeklyReport.week_start}
-              feedbackSavingKey={feedbackSavingKey}
-              onFeedback={onFeedback}
-              positiveLabel="此策略对我有效"
-              negativeLabel="未按预期执行"
-              positiveValue="effective"
-              negativeValue="not_effective"
-            />
-          </div>
-
-          <div className="report-section">
-            <div className="report-section-head">
-              <h4>家长下一步行动建议</h4>
-              <div className="feedback-summary">
-                <span className="status-pill">继续执行 {weeklyReport.feedback_summary.continue_count}</span>
-                <span className="status-pill warning">调整计划 {weeklyReport.feedback_summary.adjust_count}</span>
-              </div>
-            </div>
-            <ActionList
-              items={weeklyReport.next_actions}
-              states={weeklyReport.feedback_states}
-              periodType="weekly"
-              periodStart={weeklyReport.week_start}
-              feedbackSavingKey={feedbackSavingKey}
-              onFeedback={onFeedback}
-            />
-          </div>
-        </div>
-      ) : null}
-
-      {monthlyReport ? (
-        <div className="panel report-card">
-          <div className="report-card-header">
-            <div>
-              <p className="eyebrow">Monthly Review</p>
-              <h3>长期跟踪与调整</h3>
-              <p className="muted">{formatDateRange(monthlyReport.month_start, monthlyReport.month_end)}</p>
-            </div>
-            <span className="status-pill">{monthlyReport.history.length} 个月历史</span>
-          </div>
-
-          <div className="report-section">
-            <h4>本月概览</h4>
-            <div className="quote-box">{monthlyReport.overview_summary}</div>
-            <div className="report-copy-grid">
-              <div className="metric-card">
-                <span className="label">压力变化</span>
-                <p>{monthlyReport.stress_change_summary}</p>
-              </div>
-              <div className="metric-card">
-                <span className="label">冲突变化</span>
-                <p>{monthlyReport.conflict_change_summary}</p>
-              </div>
-              <div className="metric-card">
-                <span className="label">任务完成趋势</span>
-                <p>{monthlyReport.task_completion_summary}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="report-section">
-            <h4>长期趋势</h4>
-            <TrendCards items={monthlyReport.long_term_trends} />
-          </div>
-
-          <div className="report-section">
-            <div className="report-section-head">
-              <h4>成功案例与高效方法</h4>
-              <div className="feedback-summary">
-                <span className="status-pill">有效 {monthlyReport.feedback_summary.effective_count}</span>
-                <span className="status-pill warning">需调整 {monthlyReport.feedback_summary.not_effective_count}</span>
-              </div>
-            </div>
-            <StrategyList
-              items={monthlyReport.successful_methods}
-              states={monthlyReport.feedback_states}
-              periodType="monthly"
-              periodStart={monthlyReport.month_start}
-              feedbackSavingKey={feedbackSavingKey}
-              onFeedback={onFeedback}
-              positiveLabel="继续保留"
-              negativeLabel="方法失效了"
-              positiveValue="effective"
-              negativeValue="not_effective"
-            />
-          </div>
-
-          <div className="report-section">
-            <div className="report-section-head">
-              <h4>下一步行动计划</h4>
-              <div className="feedback-summary">
-                <span className="status-pill">继续执行 {monthlyReport.feedback_summary.continue_count}</span>
-                <span className="status-pill warning">调整计划 {monthlyReport.feedback_summary.adjust_count}</span>
-              </div>
-            </div>
-            <ActionList
-              items={monthlyReport.next_month_plan}
-              states={monthlyReport.feedback_states}
-              periodType="monthly"
-              periodStart={monthlyReport.month_start}
-              feedbackSavingKey={feedbackSavingKey}
-              onFeedback={onFeedback}
-            />
-          </div>
-
-          <div className="report-section">
-            <h4>个性化历史趋势</h4>
-            <HistoryCards items={monthlyReport.history} />
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
+  return null;
 }

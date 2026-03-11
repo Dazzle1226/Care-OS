@@ -19,6 +19,65 @@ def _ensure_schema_updates() -> None:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE daily_checkins ADD COLUMN details_json JSON NOT NULL DEFAULT '{}'"))
 
+    if "reviews" in inspector.get_table_names():
+        existing_columns = {column["name"] for column in inspector.get_columns("reviews")}
+        with engine.begin() as conn:
+            if "child_state_after" not in existing_columns:
+                conn.execute(
+                    text(
+                        "ALTER TABLE reviews ADD COLUMN child_state_after "
+                        "VARCHAR(32) NOT NULL DEFAULT 'partly_settled'"
+                    )
+                )
+            if "caregiver_state_after" not in existing_columns:
+                conn.execute(
+                    text(
+                        "ALTER TABLE reviews ADD COLUMN caregiver_state_after "
+                        "VARCHAR(32) NOT NULL DEFAULT 'same'"
+                    )
+                )
+            if "recommendation" not in existing_columns:
+                conn.execute(
+                    text(
+                        "ALTER TABLE reviews ADD COLUMN recommendation "
+                        "VARCHAR(16) NOT NULL DEFAULT 'continue'"
+                    )
+                )
+            if "response_action" not in existing_columns:
+                conn.execute(
+                    text(
+                        "ALTER TABLE reviews ADD COLUMN response_action "
+                        "TEXT NOT NULL DEFAULT ''"
+                    )
+                )
+
+    if "training_task_feedbacks" in inspector.get_table_names():
+        existing_columns = {column["name"] for column in inspector.get_columns("training_task_feedbacks")}
+        with engine.begin() as conn:
+            if "task_instance_id" not in existing_columns:
+                conn.execute(text("ALTER TABLE training_task_feedbacks ADD COLUMN task_instance_id INTEGER"))
+            if "helpfulness" not in existing_columns:
+                conn.execute(
+                    text(
+                        "ALTER TABLE training_task_feedbacks ADD COLUMN helpfulness "
+                        "VARCHAR(16) NOT NULL DEFAULT 'neutral'"
+                    )
+                )
+            if "obstacle_tag" not in existing_columns:
+                conn.execute(
+                    text(
+                        "ALTER TABLE training_task_feedbacks ADD COLUMN obstacle_tag "
+                        "VARCHAR(32) NOT NULL DEFAULT 'none'"
+                    )
+                )
+            if "safety_pause" not in existing_columns:
+                conn.execute(
+                    text(
+                        "ALTER TABLE training_task_feedbacks ADD COLUMN safety_pause "
+                        "BOOLEAN NOT NULL DEFAULT 0"
+                    )
+                )
+
 
 def init_db(seed_strategy_cards: bool = True, seed_path: str | None = None) -> None:
     Base.metadata.create_all(bind=engine)

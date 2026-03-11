@@ -39,6 +39,10 @@ class Family(Base):
     plans: Mapped[list["Plan48h"]] = relationship(back_populates="family")
     reviews: Mapped[list["Review"]] = relationship(back_populates="family")
     training_feedbacks: Mapped[list["TrainingTaskFeedback"]] = relationship(back_populates="family")
+    training_skill_states: Mapped[list["TrainingSkillState"]] = relationship(back_populates="family")
+    training_plan_cycles: Mapped[list["TrainingPlanCycle"]] = relationship(back_populates="family")
+    daily_training_tasks: Mapped[list["DailyTrainingTask"]] = relationship(back_populates="family")
+    training_adjustments: Mapped[list["TrainingAdjustmentLog"]] = relationship(back_populates="family")
     weekly_reports: Mapped[list["WeeklyReport"]] = relationship(back_populates="family")
     report_feedbacks: Mapped[list["ReportFeedback"]] = relationship(back_populates="family")
 
@@ -170,6 +174,10 @@ class Review(Base):
     family_id: Mapped[int] = mapped_column(ForeignKey("families.family_id"), index=True)
     card_ids: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
     outcome_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    child_state_after: Mapped[str] = mapped_column(String(32), default="partly_settled", nullable=False)
+    caregiver_state_after: Mapped[str] = mapped_column(String(32), default="same", nullable=False)
+    recommendation: Mapped[str] = mapped_column(String(16), default="continue", nullable=False)
+    response_action: Mapped[str] = mapped_column(Text, default="", nullable=False)
     notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
     followup_action: Mapped[str] = mapped_column(Text, default="", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
@@ -183,6 +191,7 @@ class TrainingTaskFeedback(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     family_id: Mapped[int] = mapped_column(ForeignKey("families.family_id"), index=True)
     date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    task_instance_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     task_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     task_title: Mapped[str] = mapped_column(String(128), nullable=False)
     area_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
@@ -191,10 +200,98 @@ class TrainingTaskFeedback(Base):
     difficulty_rating: Mapped[str] = mapped_column(String(16), nullable=False)
     effect_score: Mapped[float] = mapped_column(Float, nullable=False)
     parent_confidence: Mapped[float] = mapped_column(Float, nullable=False)
+    helpfulness: Mapped[str] = mapped_column(String(16), default="neutral", nullable=False)
+    obstacle_tag: Mapped[str] = mapped_column(String(32), default="none", nullable=False)
+    safety_pause: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     family: Mapped[Family] = relationship(back_populates="training_feedbacks")
+
+
+class TrainingSkillState(Base):
+    __tablename__ = "training_skill_states"
+    __table_args__ = (UniqueConstraint("family_id", "area_key", name="uq_training_skill_state_family_area"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.family_id"), index=True)
+    area_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    priority_score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    priority_rank: Mapped[int] = mapped_column(Integer, default=99, nullable=False)
+    current_stage: Mapped[str] = mapped_column(String(16), default="stabilize", nullable=False)
+    current_difficulty: Mapped[str] = mapped_column(String(16), default="starter", nullable=False)
+    recommended_time: Mapped[str] = mapped_column(String(80), default="", nullable=False)
+    recommended_scene: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    best_method: Mapped[str] = mapped_column(String(160), default="", nullable=False)
+    reason_summary: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    risk_summary: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    weekly_sessions_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    success_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    effectiveness_score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    last_assessed_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    last_adjusted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    meta_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+
+    family: Mapped[Family] = relationship(back_populates="training_skill_states")
+
+
+class TrainingPlanCycle(Base):
+    __tablename__ = "training_plan_cycles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.family_id"), index=True)
+    cycle_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    load_level: Mapped[str] = mapped_column(String(16), default="standard", nullable=False)
+    weekly_summary: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    source_summary: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    top_area_keys: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    snapshot_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    family: Mapped[Family] = relationship(back_populates="training_plan_cycles")
+    daily_tasks: Mapped[list["DailyTrainingTask"]] = relationship(back_populates="cycle")
+
+
+class DailyTrainingTask(Base):
+    __tablename__ = "daily_training_tasks"
+    __table_args__ = (UniqueConstraint("cycle_id", "order_idx", name="uq_daily_training_task_cycle_order"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.family_id"), index=True)
+    cycle_id: Mapped[int] = mapped_column(ForeignKey("training_plan_cycles.id"), index=True)
+    task_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    order_idx: Mapped[int] = mapped_column(Integer, nullable=False)
+    area_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String(128), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), default="pending", nullable=False)
+    reminder_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    reminder_status: Mapped[str] = mapped_column(String(16), default="none", nullable=False)
+    feedback_submitted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    task_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    family: Mapped[Family] = relationship(back_populates="daily_training_tasks")
+    cycle: Mapped[TrainingPlanCycle] = relationship(back_populates="daily_tasks")
+
+
+class TrainingAdjustmentLog(Base):
+    __tablename__ = "training_adjustments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.family_id"), index=True)
+    area_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    task_instance_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    feedback_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    title: Mapped[str] = mapped_column(String(128), nullable=False)
+    summary: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    trigger: Mapped[str] = mapped_column(String(64), default="manual", nullable=False)
+    before_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    after_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    family: Mapped[Family] = relationship(back_populates="training_adjustments")
 
 
 class WeeklyReport(Base):

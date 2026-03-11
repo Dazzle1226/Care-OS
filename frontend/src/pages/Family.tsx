@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { ProfileForm } from '../components/ProfileForm';
-import { getOnboardingFamily, upsertProfile } from '../lib/api';
+import { getOnboardingFamily, isFamilyNotFoundError, upsertProfile } from '../lib/api';
 import { buildProfileFormFromSummary } from '../lib/profileForm';
 import type { OnboardingSetupPayload, OnboardingSnapshot, OnboardingSummary, OnboardingSupportCard } from '../lib/types';
 
@@ -15,15 +15,9 @@ interface Props {
 }
 
 const cardIconLabel: Record<OnboardingSupportCard['icon'], string> = {
-  child: '孩子支持',
-  parent: '家长支持',
-  team: '家庭协作'
+  support: '支持卡',
+  handoff: '交接卡'
 };
-
-function savedCardKey(familyId: number) {
-  return `care_os_saved_support_cards_${familyId}`;
-}
-
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, '&amp;')
@@ -48,7 +42,23 @@ function openPrintableWindow(title: string, snapshot: OnboardingSnapshot, cards:
           <p class="print-label">${escapeHtml(cardIconLabel[card.icon])}</p>
           <h2>${escapeHtml(card.title)}</h2>
           <p>${escapeHtml(card.summary)}</p>
-          <ul>${card.bullets.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+          <p class="print-one-liner">${escapeHtml(card.one_liner)}</p>
+          <p class="print-subtitle">先看这几条</p>
+          <div class="print-chip-row">
+            ${card.quick_actions.map((item) => `<span class="print-chip">${escapeHtml(item)}</span>`).join('')}
+          </div>
+          <div class="print-section-grid">
+            ${card.sections
+              .map(
+                (section) => `
+                  <section class="print-mini-card">
+                    <h3>${escapeHtml(section.title)}</h3>
+                    <ul>${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+                  </section>
+                `
+              )
+              .join('')}
+          </div>
         </section>
       `
     )
@@ -68,6 +78,13 @@ function openPrintableWindow(title: string, snapshot: OnboardingSnapshot, cards:
           .print-cover { border: 1px solid #c9ddd6; border-radius: 18px; padding: 24px; background: #ffffff; margin-bottom: 16px; }
           .print-card { border: 1px solid #c9ddd6; border-radius: 18px; padding: 20px; background: #ffffff; margin-bottom: 14px; }
           .print-label { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #dceee6; color: #246152; font-size: 12px; margin-bottom: 10px; }
+          .print-one-liner { margin: 12px 0; padding: 12px 14px; border-radius: 14px; background: #eef7f2; color: #1d2b2c; }
+          .print-subtitle { margin: 14px 0 8px; color: #58716d; font-size: 13px; }
+          .print-chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+          .print-chip { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #f2f7f4; color: #355652; font-size: 13px; }
+          .print-section-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+          .print-mini-card { border: 1px solid #dce8e2; border-radius: 14px; padding: 12px; background: #fbfdfc; }
+          .print-mini-card h3 { margin: 0 0 8px; font-size: 16px; }
           ul { margin: 0; padding-left: 18px; }
         </style>
       </head>
@@ -109,12 +126,27 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
   return lines;
 }
 
-async function exportCardAsPng(familyName: string, snapshot: OnboardingSnapshot, card: OnboardingSupportCard) {
+async function exportCardAsPng(familyName: string, _snapshot: OnboardingSnapshot, card: OnboardingSupportCard) {
   const canvas = document.createElement('canvas');
   canvas.width = 1200;
-  canvas.height = 820;
+  canvas.height = 1080;
   const ctx = canvas.getContext('2d');
   if (!ctx) return false;
+
+  ctx.font = '400 28px "Noto Sans SC", sans-serif';
+  const summaryLines = wrapText(ctx, card.summary, 980);
+  ctx.font = '600 28px "Noto Sans SC", sans-serif';
+  const oneLinerLines = wrapText(ctx, card.one_liner, 940);
+  ctx.font = '400 24px "Noto Sans SC", sans-serif';
+  const quickLines = wrapText(ctx, `先看这几条：${card.quick_actions.join(' / ')}`, 960);
+  const sectionBlocks = card.sections.map((section) => ({
+    title: section.title,
+    itemLines: section.items.map((item) => wrapText(ctx, `• ${item}`, 420)),
+  }));
+  const sectionRows = Math.ceil(sectionBlocks.length / 2);
+  const sectionHeight = sectionRows * 220;
+  const contentHeight = 470 + summaryLines.length * 38 + oneLinerLines.length * 36 + quickLines.length * 30 + sectionHeight;
+  canvas.height = Math.max(1080, contentHeight);
 
   const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
   gradient.addColorStop(0, '#edf8f3');
@@ -126,7 +158,7 @@ async function exportCardAsPng(familyName: string, snapshot: OnboardingSnapshot,
   ctx.strokeStyle = '#bfd7ce';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.roundRect(48, 48, 1104, 724, 28);
+  ctx.roundRect(48, 48, 1104, canvas.height - 96, 28);
   ctx.fill();
   ctx.stroke();
 
@@ -139,32 +171,65 @@ async function exportCardAsPng(familyName: string, snapshot: OnboardingSnapshot,
   ctx.fillText(card.title, 88, 168);
 
   ctx.font = '400 28px "Noto Sans SC", sans-serif';
-  wrapText(ctx, card.summary, 980).forEach((line, index) => {
+  summaryLines.forEach((line, index) => {
     ctx.fillText(line, 88, 228 + index * 38);
   });
 
-  ctx.font = '600 26px "Noto Sans SC", sans-serif';
-  ctx.fillStyle = '#236252';
-  ctx.fillText('推荐焦点', 88, 336);
-  ctx.font = '400 24px "Noto Sans SC", sans-serif';
-  ctx.fillStyle = '#415757';
-  wrapText(ctx, snapshot.recommended_focus, 980).forEach((line, index) => {
-    ctx.fillText(line, 88, 376 + index * 34);
+  const oneLinerY = 228 + summaryLines.length * 38 + 54;
+  ctx.fillStyle = '#eef7f2';
+  ctx.beginPath();
+  ctx.roundRect(88, oneLinerY - 26, 960, Math.max(82, oneLinerLines.length * 36 + 28), 18);
+  ctx.fill();
+  ctx.font = '600 28px "Noto Sans SC", sans-serif';
+  ctx.fillStyle = '#1b2d2d';
+  oneLinerLines.forEach((line, index) => {
+    ctx.fillText(line, 112, oneLinerY + index * 36);
   });
 
+  const quickTitleY = oneLinerY + Math.max(82, oneLinerLines.length * 36 + 28) + 38;
   ctx.fillStyle = '#1b2d2d';
   ctx.font = '600 26px "Noto Sans SC", sans-serif';
-  ctx.fillText('行动要点', 88, 474);
+  ctx.fillText('先看这几条', 88, quickTitleY);
   ctx.font = '400 24px "Noto Sans SC", sans-serif';
-  card.bullets.forEach((bullet, index) => {
-    wrapText(ctx, `• ${bullet}`, 960).forEach((line, lineIndex) => {
-      ctx.fillText(line, 88, 516 + index * 72 + lineIndex * 30);
+  ctx.fillStyle = '#415757';
+  quickLines.forEach((line, index) => {
+    ctx.fillText(line, 88, quickTitleY + 40 + index * 30);
+  });
+
+  const sectionStartY = quickTitleY + 40 + quickLines.length * 30 + 44;
+  const cardWidth = 470;
+  sectionBlocks.forEach((section, index) => {
+    const col = index % 2;
+    const row = Math.floor(index / 2);
+    const x = 88 + col * 500;
+    const y = sectionStartY + row * 220;
+
+    ctx.fillStyle = '#fbfdfc';
+    ctx.strokeStyle = '#dce8e2';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(x, y, cardWidth, 188, 18);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#236252';
+    ctx.font = '600 24px "Noto Sans SC", sans-serif';
+    ctx.fillText(section.title, x + 20, y + 34);
+
+    ctx.fillStyle = '#415757';
+    ctx.font = '400 22px "Noto Sans SC", sans-serif';
+    let lineY = y + 72;
+    section.itemLines.forEach((lines) => {
+      lines.forEach((line, lineIndex) => {
+        ctx.fillText(line, x + 20, lineY + lineIndex * 28);
+      });
+      lineY += lines.length * 28 + 18;
     });
   });
 
   ctx.fillStyle = '#6c7e7b';
   ctx.font = '400 20px "Noto Sans SC", sans-serif';
-  ctx.fillText(familyName, 88, 734);
+  ctx.fillText(familyName, 88, canvas.height - 52);
 
   const dataUrl = canvas.toDataURL('image/png');
   const anchor = document.createElement('a');
@@ -187,7 +252,6 @@ export function FamilyPage({
   const [savingProfile, setSavingProfile] = useState(false);
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState('');
-  const [savedCards, setSavedCards] = useState<string[]>([]);
   const [editForm, setEditForm] = useState<OnboardingSetupPayload>(buildProfileFormFromSummary(summary));
 
   useEffect(() => {
@@ -197,15 +261,6 @@ export function FamilyPage({
   useEffect(() => {
     setEditForm(buildProfileFormFromSummary(summary ?? data));
   }, [data, summary]);
-
-  useEffect(() => {
-    if (!familyId) {
-      setSavedCards([]);
-      return;
-    }
-    const raw = localStorage.getItem(savedCardKey(familyId));
-    setSavedCards(raw ? JSON.parse(raw) : []);
-  }, [familyId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -234,6 +289,10 @@ export function FamilyPage({
       })
       .catch((err) => {
         if (cancelled) return;
+        if (isFamilyNotFoundError(err)) {
+          setError('家庭档案不存在，正在返回首次设置页...');
+          return;
+        }
         setError((err as Error).message);
       })
       .finally(() => {
@@ -244,15 +303,6 @@ export function FamilyPage({
       cancelled = true;
     };
   }, [familyId, onSummaryChange, summary, token]);
-
-  const toggleSaveCard = (cardId: string) => {
-    if (!familyId) return;
-    const next = savedCards.includes(cardId)
-      ? savedCards.filter((item) => item !== cardId)
-      : [...savedCards, cardId];
-    setSavedCards(next);
-    localStorage.setItem(savedCardKey(familyId), JSON.stringify(next));
-  };
 
   if (!familyId) {
     return (
@@ -275,10 +325,6 @@ export function FamilyPage({
     openPrintableWindow(`${data.family.name} · 家庭画像`, data.snapshot, data.support_cards);
   };
 
-  const exportCardPdf = (card: OnboardingSupportCard) => {
-    openPrintableWindow(`${data.family.name} · ${card.title}`, data.snapshot, [card]);
-  };
-
   const saveProfile = async () => {
     if (!familyId) return;
     setSavingProfile(true);
@@ -291,6 +337,10 @@ export function FamilyPage({
       onSummaryChange(refreshed);
       setEditing(false);
     } catch (err) {
+      if (isFamilyNotFoundError(err)) {
+        setError('家庭档案不存在，正在返回首次设置页...');
+        return;
+      }
       setError((err as Error).message);
     } finally {
       setSavingProfile(false);
@@ -304,7 +354,7 @@ export function FamilyPage({
           <div>
             <p className="eyebrow">设置完成</p>
             <h3>家庭档案已经生成</h3>
-            <p className="muted">你现在可以继续进入主界面，系统也已经准备好今日支持与高摩擦场景支援。</p>
+            <p className="muted">现在可以回到今天页开始签到，之后系统会按这份档案给出建议。</p>
           </div>
           <button className="btn" type="button" onClick={onFinishSetup}>
             完成设置，进入今天
@@ -317,6 +367,7 @@ export function FamilyPage({
           <p className="eyebrow">家庭画像</p>
           <h2>{data.family.name}</h2>
           <p>{data.snapshot.recommended_focus}</p>
+          <p className="muted">先看今天最相关的提醒；需要改资料时，再展开下面的详细档案。</p>
         </div>
         <div className="hero-side">
           <span className="date-pill">family_id #{data.family.family_id}</span>
@@ -352,7 +403,101 @@ export function FamilyPage({
         </section>
       ) : null}
 
-      <div className="family-summary-grid">
+      <div className="family-key-grid">
+        <section className="panel detail-card">
+          <p className="eyebrow">当前照护焦点</p>
+          <h3>{data.snapshot.recommended_focus}</h3>
+          <p className="muted">首页和高摩擦支援会优先参考这里。</p>
+        </section>
+        <section className="panel detail-card">
+          <p className="eyebrow">高频触发器</p>
+          <div className="chip-row">
+            {data.snapshot.trigger_summary.map((item) => (
+              <span key={item} className="info-chip warn">{item}</span>
+            ))}
+            {data.snapshot.sensory_summary.map((item) => (
+              <span key={item} className="info-chip soft">{item}</span>
+            ))}
+          </div>
+        </section>
+        <section className="panel detail-card">
+          <p className="eyebrow">有效安抚</p>
+          <ul className="list">
+            {data.snapshot.soothing_summary.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+        <section className="panel detail-card">
+          <p className="eyebrow">可用支持者</p>
+          <div className="chip-row">
+            {data.snapshot.supporter_summary.map((item) => (
+              <span key={item} className="info-chip ok">{item}</span>
+            ))}
+          </div>
+        </section>
+        <section className="panel detail-card">
+          <p className="eyebrow">不要做</p>
+          <ul className="list">
+            {data.profile.donts.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      </div>
+
+      <section className="grid family-card-grid">
+        {data.support_cards.map((card) => {
+          return (
+            <article key={card.card_id} className="panel support-card">
+              <div className="support-card-head">
+                <div>
+                  <p className="eyebrow">{cardIconLabel[card.icon]}</p>
+                  <h3>{card.title}</h3>
+                </div>
+                <span className="support-badge">按档案生成</span>
+              </div>
+              <p>{card.summary}</p>
+              <p className="support-card-one-liner">{card.one_liner}</p>
+              <div className="support-card-quick">
+                <span className="support-card-quick-label">先看这几条</span>
+                {card.quick_actions.map((item) => (
+                  <span key={item} className="info-chip ok">{item}</span>
+                ))}
+              </div>
+              <div className="support-card-sections">
+                {card.sections.map((section) => (
+                  <section key={`${card.card_id}-${section.key}`} className="support-card-section">
+                    <p className="support-card-section-title">{section.title}</p>
+                    <ul className="support-card-section-list">
+                      {section.items.map((item) => (
+                        <li key={`${section.key}-${item}`}>{item}</li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+              <div className="support-actions">
+                <button className="btn" type="button" onClick={() => exportCardAsPng(data.family.name, data.snapshot, card)}>
+                  导出图片
+                </button>
+              </div>
+            </article>
+          );
+        })}
+      </section>
+
+      <details className="panel family-details-panel">
+        <summary className="family-details-summary">
+          <div>
+            <p className="eyebrow">完整档案</p>
+            <strong>查看完整家庭画像与历史信息</strong>
+            <p className="muted">展开后可查看孩子信息、兴趣偏好、健康情况、学习支持和家庭资源。</p>
+          </div>
+          <span className="family-details-summary-action">点此展开</span>
+        </summary>
+
+        <div className="family-summary-grid">
         <section className="panel detail-card">
           <p className="eyebrow">孩子信息</p>
           <ul className="list">
@@ -396,9 +541,9 @@ export function FamilyPage({
             ))}
           </ul>
         </section>
-      </div>
+        </div>
 
-      <div className="family-summary-grid">
+        <div className="family-summary-grid">
         <section className="panel detail-card">
           <p className="eyebrow">安抚方式</p>
           <ul className="list">
@@ -455,49 +600,8 @@ export function FamilyPage({
             ))}
           </ul>
         </section>
-      </div>
-
-      <section className="grid family-card-grid">
-        {data.support_cards.map((card) => {
-          const saved = savedCards.includes(card.card_id);
-          return (
-            <article key={card.card_id} className="panel support-card">
-              <div className="support-card-head">
-                <div>
-                  <p className="eyebrow">{cardIconLabel[card.icon]}</p>
-                  <h3>{card.title}</h3>
-                </div>
-                <span className="support-badge">{saved ? '已保存' : '建议查看'}</span>
-              </div>
-              <p>{card.summary}</p>
-              <ul className="list">
-                {card.bullets.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <div className="support-actions">
-                <button className="btn secondary" type="button" onClick={() => toggleSaveCard(card.card_id)}>
-                  {saved ? '取消保存' : '保存'}
-                </button>
-                <button
-                  className="btn secondary"
-                  type="button"
-                  onClick={() => exportCardPdf(card)}
-                >
-                  导出 PDF
-                </button>
-                <button
-                  className="btn"
-                  type="button"
-                  onClick={() => exportCardAsPng(data.family.name, data.snapshot, card)}
-                >
-                  导出图片
-                </button>
-              </div>
-            </article>
-          );
-        })}
-      </section>
+        </div>
+      </details>
 
       {error ? <div className="panel error">{error}</div> : null}
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { generateMicroRespite, submitMicroRespiteFeedback } from '../lib/api';
+import { sanitizeDisplayText } from '../lib/displayText';
 import type {
   CheckinRecord,
   ChildEmotionState,
@@ -37,16 +38,17 @@ interface Props {
 
 function inferChildEmotion(checkin?: CheckinRecord): ChildEmotionState {
   if (!checkin) return 'fragile';
+  const transitionDifficulty = checkin.transition_difficulty ?? 5;
   if (
     checkin.meltdown_count >= 3 ||
-    checkin.transition_difficulty >= 8 ||
+    transitionDifficulty >= 8 ||
     checkin.sensory_overload_level === 'heavy'
   ) {
     return 'meltdown_risk';
   }
   if (
     checkin.meltdown_count >= 2 ||
-    checkin.transition_difficulty >= 7 ||
+    transitionDifficulty >= 7 ||
     checkin.sensory_overload_level === 'medium'
   ) {
     return 'escalating';
@@ -193,7 +195,7 @@ export function MicroRespiteModal({ open, token, familyId, initialCheckin, risk,
         <div className="micro-respite-shell">
           <div className="micro-respite-header">
             <div>
-              <p className="eyebrow">Micro Respite</p>
+              <p className="eyebrow">微喘息支持</p>
               <h3 id="micro-respite-title">开始微喘息</h3>
               <p className="muted">先补充此刻状态，再生成 3 条可执行的个性化建议。</p>
             </div>
@@ -379,7 +381,7 @@ export function MicroRespiteModal({ open, token, familyId, initialCheckin, risk,
               <div className="panel micro-plan-summary">
                 <div>
                   <p className="eyebrow">个性化建议</p>
-                  <h4>{result.plan.headline}</h4>
+                  <h4>{sanitizeDisplayText(result.plan.headline)}</h4>
                 </div>
                 <p>{result.plan.context_summary}</p>
                 <div className="chip-row">

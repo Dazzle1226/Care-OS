@@ -103,8 +103,15 @@ def test_weekly_report_includes_summary_and_feedback(db_session: Session, seeded
         assert body["child_emotion_summary"]
         assert len(body["stress_trend"]) == 7
         assert len(body["meltdown_trend"]) == 7
+        assert len(body["week_over_week"]) == 3
         assert body["task_completion_score"] >= 0
+        assert body["strategy_ranking_summary"]
         assert body["strategy_top3"][0]["title"]
+        assert body["strategy_top3"][0]["success_rate"] >= 0
+        assert body["strategy_top3"][0]["fit_rate"] >= 0
+        assert body["strategy_top3"][0]["recommendation"] in {"continue", "pause", "replace"}
+        assert len(body["strategy_top3"][0]["why_ranked"]) >= 2
+        assert body["replay_items"][0]["timeline"][0]["label"] == "触发器"
         assert body["next_actions"][0]["title"]
 
         feedback_response = client.post(
@@ -234,5 +241,7 @@ def test_monthly_report_returns_trends_and_history(db_session: Session, seeded_f
     assert body["task_completion_summary"]
     assert len(body["long_term_trends"]) == 4
     assert len(body["history"]) == 3
+    assert body["strategy_ranking_summary"]
     assert body["successful_methods"][0]["title"]
+    assert body["successful_methods"][0]["recommendation"] in {"continue", "pause", "replace"}
     assert body["next_month_plan"][0]["title"]

@@ -88,13 +88,14 @@ def build_donts(
 
 def build_high_friction_scenarios(
     child_age: int | None,
+    core_difficulties: list[str],
     triggers: list[str],
     behavior_risks: list[str],
     school_notes: str,
     selected_scenarios: list[str] | None = None,
 ) -> list[str]:
     scenarios: list[str] = selected_scenarios[:] if selected_scenarios else []
-    joined = " ".join([*triggers, *behavior_risks, school_notes])
+    joined = " ".join([*core_difficulties, *triggers, *behavior_risks, school_notes])
     if "过渡" in joined:
         scenarios.append("transition")
     if "睡" in joined or "夜醒" in joined:
@@ -116,6 +117,7 @@ def build_school_context(source: Mapping[str, Any], onboarding_source: str | Non
         "primary_caregiver": source.get("primary_caregiver"),
         "diagnosis_status": source.get("diagnosis_status"),
         "diagnosis_notes": str(source.get("diagnosis_notes") or "").strip(),
+        "core_difficulties": normalize_list(source.get("core_difficulties") or [], limit=10),
         "coexisting_conditions": normalize_list(source.get("coexisting_conditions") or [], limit=8),
         "family_members": normalize_list(source.get("family_members") or [], limit=8),
         "interests": normalize_list(source.get("interests") or [], limit=8),
@@ -139,6 +141,10 @@ def build_school_context(source: Mapping[str, Any], onboarding_source: str | Non
         "parent_support_actions": normalize_list(source.get("parent_support_actions") or [], limit=8),
         "parent_emotional_supports": normalize_list(source.get("parent_emotional_supports") or [], limit=8),
         "available_supporters": normalize_list(source.get("available_supporters") or [], limit=8),
+        "supporter_availability": normalize_list(source.get("supporter_availability") or [], limit=8),
+        "supporter_independent_care": source.get("supporter_independent_care"),
+        "major_incident_notes": str(source.get("major_incident_notes") or "").strip(),
+        "emergency_contacts": normalize_list(source.get("emergency_contacts") or [], limit=8),
         "taboo_behaviors": str(source.get("taboo_behaviors") or "").strip(),
     }
     if onboarding_source:
@@ -150,6 +156,7 @@ def build_profile_fields(source: Mapping[str, Any], onboarding_source: str | Non
     child_age = source.get("child_age")
     child_age_int = child_age if isinstance(child_age, int) else None
     communication_level = str(source.get("communication_level") or "short_sentence")
+    core_difficulties = normalize_list(source.get("core_difficulties") or [], limit=10)
     triggers = normalize_list(source.get("triggers") or [], limit=8)
     sensory_flags = normalize_list(source.get("sensory_flags") or [], limit=8)
     custom_soothing = normalize_list(source.get("soothing_methods") or [], limit=8)
@@ -180,6 +187,7 @@ def build_profile_fields(source: Mapping[str, Any], onboarding_source: str | Non
         "school_context": context,
         "high_friction_scenarios": build_high_friction_scenarios(
             child_age=child_age_int,
+            core_difficulties=core_difficulties,
             triggers=triggers,
             behavior_risks=behavior_risks,
             school_notes=school_notes,

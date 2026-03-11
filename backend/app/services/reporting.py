@@ -18,9 +18,16 @@ from app.schemas.domain import (
     ReportFeedbackState,
     ReportFeedbackSummary,
     ReportMetricPoint,
+    ReplayResponse,
     StrategyInsight,
     TaskEffectItem,
+    TrendDeltaItem,
     WeeklyReportResponse,
+)
+from app.services.review_learning import (
+    build_replay_response,
+    is_learnable_card_id,
+    recommendation_label,
 )
 
 SCENARIO_LABELS = {
@@ -59,10 +66,26 @@ def _average(values: list[float]) -> float:
     return round(float(fmean(values)), 1) if values else 0.0
 
 
+def _percentage(hits: int, total: int) -> int:
+    return round((hits / total) * 100) if total else 0
+
+
 def _scenario_label(value: str | None) -> str:
     if not value:
         return "本周任务"
     return SCENARIO_LABELS.get(value, value)
+
+
+def _strategy_ranking_summary() -> str:
+    return "排序先看平均效果，再看有效率、适配率和证据数；只有低风险且样本少的策略，才会被保留在前排继续验证。"
+
+
+def _applicability_label(fit_rate: int) -> str:
+    if fit_rate >= 75:
+        return "high"
+    if fit_rate >= 45:
+        return "medium"
+    return "low"
 
 
 def _load_profile(db: Session, family_id: int) -> ChildProfile | None:
@@ -231,7 +254,8 @@ def _build_task_effects(
     for review in reviews:
         incident = incident_map.get(review.incident_id)
         scenario_label = _scenario_label(incident.scenario if incident else None)
-        card_label = " / ".join(card_titles.get(card_id, card_id) for card_id in review.card_ids[:2]).strip()
+        visible_card_ids = [card_id for card_id in review.card_ids if is_learnable_card_id(card_id)]
+        card_label = " / ".join(card_titles.get(card_id, card_id) for card_id in visible_card_ids[:2]).strip()
         title = (review.followup_action or "").strip()
         if not title:
             title = f"{scenario_label} · {card_label}" if card_label else f"{scenario_label}复盘"
@@ -271,6 +295,11 @@ def _fallback_strategies(profile: ChildProfile | None) -> list[StrategyInsight]:
                 summary="当前缺少足够复盘数据，先沿用家长已知有效的方法继续建立证据。",
                 evidence_count=0,
                 avg_outcome=1.0,
+                success_rate=0,
+                fit_rate=0,
+                applicability="medium",
+                recommendation="continue",
+                why_ranked=["当前缺少复盘证据。", "先沿用家庭已知较稳的方法建立基线。"],
             )
             for method in profile.soothing_methods[:3]
         ]
@@ -282,6 +311,11 @@ def _fallback_strategies(profile: ChildProfile | None) -> list[StrategyInsight]:
             summary=summary,
             evidence_count=0,
             avg_outcome=1.0,
+            success_rate=0,
+            fit_rate=0,
+            applicability="medium",
+            recommendation="continue",
+            why_ranked=["当前缺少复盘证据。", "先从低风险、低成本的方法开始积累家庭数据。"],
         )
         for target_key, title, summary in DEFAULT_METHODS
     ]
@@ -289,49 +323,88 @@ def _fallback_strategies(profile: ChildProfile | None) -> list[StrategyInsight]:
 
 def _build_strategy_insights(
     reviews: list[Review],
+    incident_map: dict[int, IncidentLog],
     card_titles: dict[str, str],
     profile: ChildProfile | None,
 ) -> list[StrategyInsight]:
-    bucket: dict[str, list[int]] = defaultdict(list)
+    bucket: dict[str, list[Review]] = defaultdict(list)
     for review in reviews:
         for card_id in review.card_ids:
-            bucket[card_id].append(review.outcome_score)
+            if not is_learnable_card_id(card_id):
+                continue
+            bucket[card_id].append(review)
 
     if not bucket:
         return _fallback_strategies(profile)
 
-    ranked = sorted(
-        bucket.items(),
-        key=lambda item: (
-            _average([float(score) for score in item[1]]),
-            sum(score >= 1 for score in item[1]),
-            len(item[1]),
-        ),
-        reverse=True,
-    )
-
-    insights: list[StrategyInsight] = []
-    for card_id, scores in ranked[:3]:
+    ranked_rows: list[tuple[float, StrategyInsight]] = []
+    for card_id, rows in bucket.items():
+        ordered_rows = sorted(rows, key=lambda item: item.created_at, reverse=True)
+        scores = [review.outcome_score for review in ordered_rows]
         avg_outcome = _average([float(score) for score in scores])
-        positive_hits = sum(score >= 1 for score in scores)
-        if positive_hits:
-            summary = f"本周期被正向反馈 {positive_hits} 次，平均效果 {avg_outcome:.1f}/2。"
-        elif any(score == 0 for score in scores):
-            summary = "已经被执行，但稳定性一般，适合小步迭代。"
-        else:
-            summary = "最近效果偏弱，可能需要更换时机或改小目标。"
-
-        insights.append(
-            StrategyInsight(
-                target_key=f"card:{card_id}",
-                title=card_titles.get(card_id, card_id),
-                summary=summary,
-                evidence_count=len(scores),
-                avg_outcome=avg_outcome,
-            )
+        total = len(ordered_rows)
+        positive_hits = sum(review.outcome_score >= 1 for review in ordered_rows)
+        fit_hits = sum(
+            review.child_state_after != "still_escalating" and review.caregiver_state_after != "more_overloaded"
+            for review in ordered_rows
         )
+        continue_hits = sum(review.recommendation == "continue" for review in ordered_rows)
+        success_rate = _percentage(positive_hits, total)
+        fit_rate = _percentage(fit_hits, total)
+        continue_rate = _percentage(continue_hits, total)
+        recent_negative_hits = sum(review.outcome_score <= 0 for review in ordered_rows[:2])
 
-    return insights or _fallback_strategies(profile)
+        low_risk_probe = False
+        if total == 1 and ordered_rows[0].outcome_score >= 1:
+            incident = incident_map.get(ordered_rows[0].incident_id)
+            low_risk_probe = incident is None or (incident.intensity != "heavy" and not incident.high_risk_flag)
+
+        recommendation = "continue"
+        if total >= 2 and (avg_outcome <= -0.3 or success_rate < 34 or fit_rate < 40):
+            recommendation = "replace"
+        elif total >= 2 and (continue_rate < 50 or recent_negative_hits >= 1):
+            recommendation = "pause"
+
+        if recommendation == "continue":
+            summary = f"本周期平均效果 {avg_outcome:.1f}/2，有效率 {success_rate}% ，适合继续放在前排。"
+        elif recommendation == "pause":
+            summary = "这条策略方向可能还对，但近期稳定性不足，建议先暂停加码。"
+        else:
+            summary = "这条策略已有多次不稳证据，建议换成更低刺激或更容易起步的做法。"
+
+        why_ranked = [
+            f"有效率 {success_rate}%（{positive_hits}/{total}）",
+            f"适配率 {fit_rate}%（孩子未继续升级且家长负荷未上升）",
+        ]
+        if low_risk_probe:
+            why_ranked.append("当前样本少，仅在低风险场景保留前排验证。")
+        else:
+            why_ranked.append(f"已累计 {total} 次家庭内证据，建议{recommendation_label(recommendation)}。")
+
+        insight = StrategyInsight(
+            target_key=f"card:{card_id}",
+            title=card_titles.get(card_id, card_id),
+            summary=summary,
+            evidence_count=total,
+            avg_outcome=avg_outcome,
+            success_rate=success_rate,
+            fit_rate=fit_rate,
+            applicability=_applicability_label(fit_rate),
+            recommendation=recommendation,
+            why_ranked=why_ranked[:3],
+        )
+        ranking_score = (
+            avg_outcome * 30
+            + success_rate * 0.35
+            + fit_rate * 0.2
+            + continue_rate * 0.12
+            + min(total, 4) * 3
+            - recent_negative_hits * 5
+        )
+        ranked_rows.append((ranking_score, insight))
+
+    ranked_rows.sort(key=lambda item: (item[0], item[1].evidence_count, item[1].avg_outcome), reverse=True)
+    return [item[1] for item in ranked_rows[:3]] or _fallback_strategies(profile)
 
 
 def _build_weekly_actions(
@@ -354,6 +427,7 @@ def _build_weekly_actions(
                 title="把过渡提醒固定到提前 5 分钟",
                 summary="下周只练一个高频过渡场景，例如出门前或睡前，保持同一句提醒和同一个顺序。",
                 rationale="本周过渡仍是最高频摩擦点，先降低不确定性最划算。",
+                recommendation="continue",
             )
         )
     if avg_stress >= 7 or avg_sleep <= 5:
@@ -363,6 +437,7 @@ def _build_weekly_actions(
                 title="先为家长留出固定的 15 分钟喘息窗口",
                 summary="下周至少安排 1 次可交接或免任务时间，不把所有恢复都压到晚上。",
                 rationale="家长压力和恢复度都偏高，先保护照护者稳定度，后续执行才会更稳。",
+                recommendation="continue",
             )
         )
     if sensory_heavy_days >= 2 or "噪音" in top_triggers:
@@ -372,6 +447,7 @@ def _build_weekly_actions(
                 title="先降刺激，再提要求",
                 summary="饭点、回家后和作业前先处理噪音、灯光和同时指令，再进入任务。",
                 rationale="感官负荷升高时更容易出现情绪升级，环境干预比口头要求更有效。",
+                recommendation="continue",
             )
         )
     if task_completion_score < 60 or retry_tasks:
@@ -381,6 +457,7 @@ def _build_weekly_actions(
                 title="把高摩擦任务拆成一个最小完成标准",
                 summary="只保留一个本周必须完成的最小动作，例如先坐下 3 分钟或先完成 1 题。",
                 rationale="本周任务执行稳定度还不够，目标过大时更容易反复失败。",
+                recommendation="replace",
             )
         )
 
@@ -391,6 +468,7 @@ def _build_weekly_actions(
                 title="延续本周最稳定的一条节奏",
                 summary="不要同时新增多个要求，先把本周最顺的一条流程继续保持 7 天。",
                 rationale="当前整体状态相对平稳，保持比继续加码更容易积累正反馈。",
+                recommendation="continue",
             )
         )
 
@@ -428,6 +506,69 @@ def _build_caregiver_summary(checkins: list[DailyCheckin]) -> tuple[str, float, 
         f"睡眠恢复 {avg_sleep:.1f}/10，整体处于{fatigue}、{emotion_state}状态。"
     )
     return summary, avg_stress, peak_stress, avg_sleep
+
+
+def _build_weekly_wow_items(
+    current_checkins: list[DailyCheckin],
+    previous_checkins: list[DailyCheckin],
+    current_reviews: list[Review],
+    previous_reviews: list[Review],
+) -> list[TrendDeltaItem]:
+    current_stress = _average([checkin.caregiver_stress for checkin in current_checkins])
+    previous_stress = _average([checkin.caregiver_stress for checkin in previous_checkins])
+    current_meltdowns = round(sum(checkin.meltdown_count for checkin in current_checkins) / max(len(current_checkins), 1), 1)
+    previous_meltdowns = round(
+        sum(checkin.meltdown_count for checkin in previous_checkins) / max(len(previous_checkins), 1), 1
+    )
+    current_completion = _completion_rate(current_reviews)
+    previous_completion = _completion_rate(previous_reviews)
+
+    return [
+        TrendDeltaItem(
+            title="家长压力",
+            summary=_stress_summary(current_stress, previous_stress),
+            current_value=current_stress,
+            previous_value=previous_stress,
+            direction=_direction(current_stress, previous_stress, lower_is_better=True),
+            unit="/10",
+        ),
+        TrendDeltaItem(
+            title="情绪升级均值",
+            summary=(
+                "还没有连续两周数据，先保持签到。"
+                if not previous_checkins
+                else f"日均升级次数从 {previous_meltdowns:.1f} 变为 {current_meltdowns:.1f}。"
+            ),
+            current_value=current_meltdowns,
+            previous_value=previous_meltdowns,
+            direction=_direction(current_meltdowns, previous_meltdowns, lower_is_better=True),
+            unit="次/天",
+        ),
+        TrendDeltaItem(
+            title="策略落地度",
+            summary=_task_completion_summary(current_completion, previous_completion, len(current_reviews)),
+            current_value=float(current_completion),
+            previous_value=float(previous_completion),
+            direction=_direction(float(current_completion), float(previous_completion), lower_is_better=False),
+            unit="/100",
+        ),
+    ]
+
+
+def _build_replay_items(
+    reviews: list[Review],
+    incident_map: dict[int, IncidentLog],
+    card_titles: dict[str, str],
+) -> list[ReplayResponse]:
+    replay_items: list[ReplayResponse] = []
+    for review in sorted(reviews, key=lambda item: item.created_at, reverse=True):
+        incident = incident_map.get(review.incident_id)
+        if incident is None:
+            continue
+        replay_items.append(build_replay_response(review=review, incident=incident, card_titles=card_titles))
+        if len(replay_items) >= 3:
+            break
+    return replay_items
 
 
 def _query_period_data(
@@ -479,12 +620,19 @@ def _query_period_data(
 def compute_weekly_report(db: Session, family_id: int, week_start: date) -> WeeklyReportResponse:
     normalized_start = normalize_week_start(week_start)
     week_end = normalized_start + timedelta(days=7)
+    previous_start = normalized_start - timedelta(days=7)
 
     profile = _load_profile(db, family_id)
     checkins, incidents, reviews, incident_map = _query_period_data(db, family_id, normalized_start, week_end)
+    previous_checkins, _, previous_reviews, _ = _query_period_data(db, family_id, previous_start, normalized_start)
     feedback_rows = _load_feedback_rows(db, family_id, "weekly", normalized_start)
 
-    card_ids = {card_id for review in reviews for card_id in review.card_ids}
+    card_ids = {
+        card_id
+        for review in reviews
+        for card_id in review.card_ids
+        if is_learnable_card_id(card_id)
+    }
     card_titles = _load_card_titles(db, card_ids)
 
     top_triggers = _top_triggers(incidents, checkins, profile)
@@ -497,7 +645,8 @@ def compute_weekly_report(db: Session, family_id: int, week_start: date) -> Week
         card_titles,
     )
     caregiver_summary, avg_stress, peak_stress, avg_sleep = _build_caregiver_summary(checkins)
-    strategy_top3 = _build_strategy_insights(reviews, card_titles, profile)
+    strategy_top3 = _build_strategy_insights(reviews, incident_map, card_titles, profile)
+    replay_items = _build_replay_items(reviews, incident_map, card_titles)
     next_actions = _build_weekly_actions(
         top_triggers=top_triggers,
         checkins=checkins,
@@ -527,6 +676,7 @@ def compute_weekly_report(db: Session, family_id: int, week_start: date) -> Week
         highest_risk_scenario=highest_risk_scenario,
         stress_trend=_trend_points(checkins, normalized_start, 7, lambda item: item.caregiver_stress if item else 0),
         meltdown_trend=_trend_points(checkins, normalized_start, 7, lambda item: item.meltdown_count if item else 0),
+        week_over_week=_build_weekly_wow_items(checkins, previous_checkins, reviews, previous_reviews),
         task_completion_score=task_completion_score,
         task_summary=task_summary,
         completed_tasks=completed_tasks,
@@ -536,7 +686,9 @@ def compute_weekly_report(db: Session, family_id: int, week_start: date) -> Week
         caregiver_stress_avg=avg_stress,
         caregiver_stress_peak=peak_stress,
         caregiver_sleep_avg=avg_sleep,
+        strategy_ranking_summary=_strategy_ranking_summary(),
         strategy_top3=strategy_top3,
+        replay_items=replay_items,
         next_actions=next_actions,
         one_thing_next_week=next_actions[0].title,
         feedback_summary=_build_feedback_summary(feedback_rows),
@@ -720,11 +872,18 @@ def compute_monthly_report(db: Session, family_id: int, month_start: date) -> Mo
     previous_start = normalize_month_start(normalized_start - timedelta(days=1))
 
     profile = _load_profile(db, family_id)
-    current_checkins, current_incidents, current_reviews, _ = _query_period_data(db, family_id, normalized_start, month_end)
+    current_checkins, current_incidents, current_reviews, current_incident_map = _query_period_data(
+        db, family_id, normalized_start, month_end
+    )
     previous_checkins, previous_incidents, previous_reviews, _ = _query_period_data(db, family_id, previous_start, normalized_start)
     feedback_rows = _load_feedback_rows(db, family_id, "monthly", normalized_start)
 
-    card_ids = {card_id for review in current_reviews for card_id in review.card_ids}
+    card_ids = {
+        card_id
+        for review in current_reviews
+        for card_id in review.card_ids
+        if is_learnable_card_id(card_id)
+    }
     card_titles = _load_card_titles(db, card_ids)
     top_triggers = _top_triggers(current_incidents, current_checkins, profile)
 
@@ -756,7 +915,8 @@ def compute_monthly_report(db: Session, family_id: int, month_start: date) -> Mo
             current_reviews,
             previous_reviews,
         ),
-        successful_methods=_build_strategy_insights(current_reviews, card_titles, profile),
+        strategy_ranking_summary=_strategy_ranking_summary(),
+        successful_methods=_build_strategy_insights(current_reviews, current_incident_map, card_titles, profile),
         next_month_plan=_build_monthly_actions(top_triggers, current_checkins, current_incidents, current_reviews),
         history=_build_monthly_history(db, family_id, normalized_start),
         feedback_summary=_build_feedback_summary(feedback_rows),

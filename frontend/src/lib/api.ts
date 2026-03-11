@@ -9,17 +9,74 @@ import type {
   MonthlyReport,
   OnboardingSetupPayload,
   OnboardingSummary,
-  PlanGenerateResponse,
   ReportFeedbackResponse,
   ScriptGenerateResponse,
+  TrainingDashboard,
+  TrainingDomainDetail,
   TrainingFeedbackResponse,
-  TrainingPlan,
+  TrainingReminderResponse,
   WeeklyReport
 } from './types';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api';
+const API_BASE = import.meta.env?.VITE_API_BASE_URL ?? 'http://localhost:8000/api';
+export const FAMILY_MISSING_EVENT = 'care-os:family-missing';
 
 type Method = 'GET' | 'POST';
+
+export class ApiError extends Error {
+  status: number;
+  statusText: string;
+  detail?: string;
+  bodyText: string;
+
+  constructor(params: { message: string; status: number; statusText: string; detail?: string; bodyText: string }) {
+    super(params.message);
+    this.name = 'ApiError';
+    this.status = params.status;
+    this.statusText = params.statusText;
+    this.detail = params.detail;
+    this.bodyText = params.bodyText;
+  }
+}
+
+function parseErrorDetail(text: string) {
+  if (!text) return undefined;
+
+  try {
+    const parsed = JSON.parse(text) as { detail?: unknown };
+    return typeof parsed.detail === 'string' ? parsed.detail : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function isFamilyNotFoundError(error: unknown) {
+  if (error instanceof ApiError) {
+    return error.status === 404 && error.detail === 'Family not found';
+  }
+
+  return error instanceof Error && error.message.includes('Family not found');
+}
+
+async function buildApiError(resp: Response) {
+  const text = await resp.text();
+  const detail = parseErrorDetail(text);
+  const message = detail ? `${resp.status} ${resp.statusText}: ${detail}` : `${resp.status} ${resp.statusText}: ${text}`;
+
+  const error = new ApiError({
+    message,
+    status: resp.status,
+    statusText: resp.statusText,
+    detail,
+    bodyText: text
+  });
+
+  if (isFamilyNotFoundError(error) && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(FAMILY_MISSING_EVENT, { detail: { message } }));
+  }
+
+  return error;
+}
 
 async function request<T>(path: string, method: Method, token?: string, body?: unknown): Promise<T> {
   const resp = await fetch(`${API_BASE}${path}`, {
@@ -32,8 +89,7 @@ async function request<T>(path: string, method: Method, token?: string, body?: u
   });
 
   if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`${resp.status} ${resp.statusText}: ${text}`);
+    throw await buildApiError(resp);
   }
   return (await resp.json()) as T;
 }
@@ -77,10 +133,6 @@ export async function getTodayCheckin(
   return request<CheckinTodayStatus>(`/checkin/today/${familyId}?date=${date}`, 'GET', token);
 }
 
-export async function generatePlan(token: string, payload: Record<string, unknown>): Promise<PlanGenerateResponse> {
-  return request<PlanGenerateResponse>('/plan48h/generate', 'POST', token, payload);
-}
-
 export async function generateMicroRespite(
   token: string,
   payload: Record<string, unknown>
@@ -106,15 +158,15 @@ export async function generateFrictionSupport(
   return request<FrictionSupportGenerateResponse>('/scripts/friction-support', 'POST', token, payload);
 }
 
-export async function getCurrentTrainingPlan(token: string, familyId: number): Promise<TrainingPlan> {
-  return request<TrainingPlan>(`/training/current/${familyId}`, 'GET', token);
+export async function getCurrentTrainingPlan(token: string, familyId: number): Promise<TrainingDashboard> {
+  return request<TrainingDashboard>(`/training/current/${familyId}`, 'GET', token);
 }
 
 export async function generateTrainingPlan(
   token: string,
   payload: Record<string, unknown>
-): Promise<TrainingPlan> {
-  return request<TrainingPlan>('/training/generate', 'POST', token, payload);
+): Promise<TrainingDashboard> {
+  return request<TrainingDashboard>('/training/generate', 'POST', token, payload);
 }
 
 export async function submitTrainingFeedback(
@@ -122,6 +174,21 @@ export async function submitTrainingFeedback(
   payload: Record<string, unknown>
 ): Promise<TrainingFeedbackResponse> {
   return request<TrainingFeedbackResponse>('/training/feedback', 'POST', token, payload);
+}
+
+export async function getTrainingDomainDetail(
+  token: string,
+  familyId: number,
+  areaKey: string
+): Promise<TrainingDomainDetail> {
+  return request<TrainingDomainDetail>(`/training/domain/${familyId}/${areaKey}`, 'GET', token);
+}
+
+export async function scheduleTrainingReminder(
+  token: string,
+  payload: Record<string, unknown>
+): Promise<TrainingReminderResponse> {
+  return request<TrainingReminderResponse>('/training/reminder', 'POST', token, payload);
 }
 
 export async function submitFrictionSupportFeedback(

@@ -3,8 +3,8 @@
   "short_name": "Care OS",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b1f1d",
-  "theme_color": "#0f2f2b",
+  "background_color": "#fcf7f1",
+  "theme_color": "#f7efe6",
   "icons": [
     {
       "src": "/icon-192.svg",

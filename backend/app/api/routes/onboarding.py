@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.agents.support_cards import SupportCardAgent
 from app.api.deps import get_current_user
 from app.db.base import get_db
 from app.models import ChildProfile, Family, User
@@ -31,6 +32,7 @@ SAMPLE_ONBOARDING: dict[str, object] = {
     "diagnosis_status": "asd",
     "diagnosis_notes": "医生提示伴随焦虑反应，近期重点处理过渡和外出。",
     "communication_level": "short_sentence",
+    "core_difficulties": ["过渡困难", "感官敏感", "外出困难"],
     "coexisting_conditions": ["焦虑倾向"],
     "family_members": ["妈妈", "爸爸", "外婆"],
     "interests": ["积木", "地铁", "水彩"],
@@ -59,6 +61,8 @@ SAMPLE_ONBOARDING: dict[str, object] = {
     "parent_support_actions": ["每周参加一次家长支持群", "周末配偶接手半天"],
     "parent_emotional_supports": ["伴侣倾听", "朋友聊天"],
     "available_supporters": ["配偶", "外婆", "朋友"],
+    "supporter_availability": ["工作日晚上", "周末"],
+    "supporter_independent_care": "can_alone",
 }
 
 GENDER_LABELS = {"male": "男", "female": "女", "other": "其他"}
@@ -127,6 +131,7 @@ def _build_snapshot(profile: ChildProfile) -> OnboardingSnapshot:
     school_type = SCHOOL_TYPE_LABELS.get(str(context.get("school_type")), "未填写")
     age_text = f"{child_age} 岁" if isinstance(child_age, int) else f"{profile.age_band} 岁段"
     coexisting = _ctx_list(context, "coexisting_conditions", "暂未记录共病/伴随问题")
+    core_difficulties = _ctx_list(context, "core_difficulties", "暂未记录核心困难")
     family_members = _ctx_list(context, "family_members", "暂未填写家庭成员")
     interests = _ctx_list(context, "interests", "暂未记录明显兴趣")
     likes = _ctx_list(context, "likes", "暂未记录稳定偏好")
@@ -148,6 +153,8 @@ def _build_snapshot(profile: ChildProfile) -> OnboardingSnapshot:
     parent_support_actions = _ctx_list(context, "parent_support_actions", "暂未记录支持性活动")
     parent_emotional_supports = _ctx_list(context, "parent_emotional_supports", "暂未记录情感支持来源")
     supporters = _ctx_list(context, "available_supporters", "暂未标记可用支持者")
+    supporter_availability = _ctx_list(context, "supporter_availability", "暂未记录支持者可用时间")
+    supporter_independent_care = str(context.get("supporter_independent_care") or "unknown")
     scenario_key, trigger = _primary_focus(profile)
     focus_label = SCENARIO_LABELS.get(scenario_key, "当前高摩擦场景")
 
@@ -157,6 +164,10 @@ def _build_snapshot(profile: ChildProfile) -> OnboardingSnapshot:
         f"协作切入口：{focus_label} 先由最稳定的照护者接手。",
         f"当前支持者：{'、'.join(supporters[:3])}",
     ]
+    if supporter_availability:
+        resource_summary.append(f"支持者常见可用时间：{'、'.join(supporter_availability[:3])}")
+    if supporter_independent_care == "can_alone":
+        resource_summary.append("当前至少有一位支持者可以单独带孩子一会儿。")
 
     diagnosis_notes = str(context.get("diagnosis_notes") or "").strip()
     child_overview = [
@@ -183,6 +194,7 @@ def _build_snapshot(profile: ChildProfile) -> OnboardingSnapshot:
             f"药物 / 健康问题：{'、'.join((medications + health_conditions)[:4])}",
         ],
         behavior_summary=[
+            f"核心困难：{'、'.join(core_difficulties[:4])}",
             f"固定行为模式：{'、'.join(behavior_patterns[:4])}",
             f"高风险行为：{'、'.join(behavior_risks[:4])}",
             f"情绪波动：{'、'.join(emotion_patterns[:4])}",
@@ -205,64 +217,18 @@ def _build_snapshot(profile: ChildProfile) -> OnboardingSnapshot:
             f"家长日程：{'、'.join(parent_schedule[:4])}",
             f"支持性活动：{'、'.join(parent_support_actions[:4])}",
             f"情感支持：{'、'.join(parent_emotional_supports[:4])}",
+            f"支持者可用时间：{'、'.join(supporter_availability[:4])}",
         ],
-        resource_summary=resource_summary[:4],
+        resource_summary=resource_summary[:5],
         recommended_focus=f"先稳定 {focus_label}，尤其留意“{trigger}”相关触发，并把今日任务降到最小可执行步骤。",
     )
-
-
-def _build_support_cards(profile: ChildProfile) -> list[OnboardingSupportCard]:
-    context = profile.school_context or {}
-    child_name = str(context.get("child_name") or "孩子")
-    parent_stressors = _ctx_list(context, "parent_stressors", "照护任务")
-    supporters = _ctx_list(context, "available_supporters", "一位固定支持者")
-    support_actions = _ctx_list(context, "parent_support_actions", "留出 15 分钟微喘息")
-    scenario_key, trigger = _primary_focus(profile)
-    focus_label = SCENARIO_LABELS.get(scenario_key, "高摩擦场景")
-
-    return [
-        OnboardingSupportCard(
-            card_id="ONB-CHILD",
-            icon="child",
-            title=f"{focus_label}应对卡",
-            summary=f"围绕“{trigger}”先降刺激，再给 {child_name} 一个可预测的下一步。",
-            bullets=[
-                f"先说观察：我看到 {child_name} 现在被“{trigger}”卡住了。",
-                f"优先使用：{profile.soothing_methods[0] if profile.soothing_methods else '提前预告 + 安静角落'}。",
-                f"避免：{profile.donts[0] if profile.donts else '临时强拉或连续追问'}。",
-            ],
-        ),
-        OnboardingSupportCard(
-            card_id="ONB-PARENT",
-            icon="parent",
-            title="家长减压卡",
-            summary=f"当前优先缓解“{parent_stressors[0]}”带来的持续透支，先保留可执行空间。",
-            bullets=[
-                "把今天目标缩成一件事，其余改为可延期任务。",
-                f"优先尝试：{support_actions[0]}。",
-                "当指令开始变多时，先停 10 秒，再只说下一步。",
-            ],
-        ),
-        OnboardingSupportCard(
-            card_id="ONB-TEAM",
-            icon="team",
-            title="家庭协作卡",
-            summary=f"把 {focus_label} 的分工先交给 {supporters[0]} 或最稳定的支持者，降低单人硬扛。",
-            bullets=[
-                f"把触发器、安抚方式和禁忌各挑 1 条发给 {supporters[0]}。",
-                "约定谁负责接手、谁负责环境整理，避免现场再协商。",
-                "每周只复盘一个高摩擦场景，持续微调而不是一次改完。",
-            ],
-        ),
-    ]
-
 
 def _build_response(family: Family, profile: ChildProfile) -> OnboardingSetupResponse:
     return OnboardingSetupResponse(
         family=FamilyRead.model_validate(family, from_attributes=True),
         profile=ChildProfileRead.model_validate(profile, from_attributes=True),
         snapshot=_build_snapshot(profile),
-        support_cards=_build_support_cards(profile),
+        support_cards=SupportCardAgent().generate_cards(family=family, profile=profile),
     )
 
 

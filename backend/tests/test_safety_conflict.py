@@ -23,3 +23,6 @@ def test_dont_conflict_should_block() -> None:
     assert decision.blocked is True
     assert decision.block is not None
     assert "冲突" in decision.block.block_reason
+    assert decision.block.severity == "conflict"
+    assert decision.block.conflict_explanation
+    assert len(decision.block.alternatives) >= 1

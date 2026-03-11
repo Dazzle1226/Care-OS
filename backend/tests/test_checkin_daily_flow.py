@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.main import app
 from app.models import DailyCheckin
+from app.schemas.domain import CheckinCreate
 
 
 def _auth_headers(client: TestClient) -> dict[str, str]:
@@ -61,6 +62,10 @@ def test_daily_checkin_status_and_same_day_update(db_session: Session, seeded_fa
         assert created["checkin"]["caregiver_sleep_quality"] == 4
         assert created["checkin"]["child_mood_state"] == "anxious"
         assert created["checkin"]["today_activities"] == ["医生预约"]
+        assert created["today_one_thing"] == "今天只保一个关键过渡"
+        assert created["action_plan"]["headline"] == "先把最难的那个过渡单独做完"
+        assert len(created["action_plan"]["reminders"]) == 2
+        assert created["action_plan"]["reminders"][0]["title"] == "不要连续催促或临时加码"
         assert len(created["action_plan"]["three_step_action"]) == 3
         assert len(created["action_plan"]["meltdown_fallback"]) == 3
         assert created["action_plan"]["parent_phrase"]
@@ -75,6 +80,7 @@ def test_daily_checkin_status_and_same_day_update(db_session: Session, seeded_fa
         assert ready["needs_checkin"] is False
         assert ready["checkin"]["checkin_id"] == created["checkin_id"]
         assert ready["action_plan"]["headline"]
+        assert len(ready["action_plan"]["reminders"]) == 2
 
         update_payload = payload | {
             "caregiver_stress": 6,
@@ -101,3 +107,84 @@ def test_daily_checkin_status_and_same_day_update(db_session: Session, seeded_fa
     assert same_day_checkins[0].caregiver_stress == 6
     assert same_day_checkins[0].caregiver_sleep_hours == 7
     assert same_day_checkins[0].details_json["today_learning_tasks"] == ["语言练习"]
+
+
+def test_daily_checkin_schema_accepts_legacy_payload_without_optional_defaults() -> None:
+    legacy_payload = {
+        "family_id": 3,
+        "date": (date.today() + timedelta(days=2)).isoformat(),
+        "child_sleep_hours": 8,
+        "sensory_overload_level": "light",
+        "meltdown_count": 0,
+        "caregiver_stress": 4,
+        "support_available": "one",
+        "caregiver_sleep_quality": 6,
+    }
+
+    parsed = CheckinCreate.model_validate(legacy_payload)
+    assert parsed.child_sleep_quality is None
+    assert parsed.transition_difficulty is None
+    assert parsed.child_mood_state == "stable"
+
+
+def test_daily_checkin_optional_scores_can_be_skipped(db_session: Session, seeded_family) -> None:
+    target_date = date.today() + timedelta(days=3)
+
+    with TestClient(app) as client:
+        headers = _auth_headers(client)
+        payload = {
+            "family_id": seeded_family.family_id,
+            "date": target_date.isoformat(),
+            "child_sleep_hours": 7,
+            "sensory_overload_level": "light",
+            "meltdown_count": 0,
+            "child_mood_state": "stable",
+            "caregiver_stress": 5,
+            "support_available": "one",
+            "caregiver_sleep_quality": 6,
+        }
+
+        response = client.post("/api/checkin", json=payload, headers=headers)
+        assert response.status_code == 200
+
+        created = response.json()
+        assert created["checkin"]["child_sleep_quality"] is None
+        assert created["checkin"]["transition_difficulty"] is None
+
+    stored = db_session.scalar(
+        select(DailyCheckin).where(
+            DailyCheckin.family_id == seeded_family.family_id,
+            DailyCheckin.date == target_date,
+        )
+    )
+    assert stored is not None
+    assert stored.transition_difficulty == 6
+    assert stored.details_json["child_sleep_quality"] is None
+    assert stored.details_json["transition_difficulty"] is None
+
+
+def test_daily_checkin_focus_copy_uses_low_capacity_fallback(db_session: Session, seeded_family) -> None:
+    target_date = date.today() + timedelta(days=4)
+
+    with TestClient(app) as client:
+        headers = _auth_headers(client)
+        payload = {
+            "family_id": seeded_family.family_id,
+            "date": target_date.isoformat(),
+            "child_sleep_hours": 4,
+            "sensory_overload_level": "light",
+            "meltdown_count": 0,
+            "child_mood_state": "low_energy",
+            "caregiver_stress": 8,
+            "support_available": "none",
+            "caregiver_sleep_quality": 3,
+        }
+
+        response = client.post("/api/checkin", json=payload, headers=headers)
+        assert response.status_code == 200
+
+        created = response.json()
+        assert created["today_one_thing"] == "今天先减负，只保最低目标"
+        assert created["action_plan"]["headline"] == "先砍掉非必要任务，保住配合"
+        assert len(created["action_plan"]["reminders"]) == 2
+        assert created["action_plan"]["reminders"][1]["body"] == "支持不足时先停一项任务，换成安静短流程。"
