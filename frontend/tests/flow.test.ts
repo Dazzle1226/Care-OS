@@ -35,7 +35,7 @@ test('createActionFlowContext trims strings and removes duplicate hints', () => 
 
 test('label helpers stay readable for navigation and review badges', () => {
   assert.equal(getActionSourceLabel('today'), '今日行动');
-  assert.equal(getActionSourceLabel('plan'), '长期训练跟踪');
+  assert.equal(getActionSourceLabel('plan'), '训练方案');
   assert.equal(getScenarioLabel('outing'), '外出');
   assert.equal(getScenarioLabel('meltdown'), '失控升级');
   assert.equal(getScenarioLabel('理发店'), '理发店');

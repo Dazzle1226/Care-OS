@@ -1,0 +1,55 @@
+{
+  "id": "checkin_today_flow",
+  "title": "签到后首页能产出今日聚焦与行动计划",
+  "setup": {
+    "extra_checkins": []
+  },
+  "steps": [
+    {
+      "name": "post_checkin",
+      "method": "POST",
+      "path": "/api/checkin",
+      "body": {
+        "family_id": "{{family_id}}",
+        "date": "{{today}}",
+        "child_sleep_hours": 5.5,
+        "child_sleep_quality": 4,
+        "sleep_issues": ["入睡困难"],
+        "sensory_overload_level": "medium",
+        "meltdown_count": 2,
+        "child_mood_state": "anxious",
+        "physical_discomforts": [],
+        "aggressive_behaviors": [],
+        "negative_emotions": ["焦虑"],
+        "transition_difficulty": 8,
+        "caregiver_stress": 8,
+        "support_available": "one",
+        "caregiver_sleep_quality": 4,
+        "today_activities": ["学校活动", "关屏"],
+        "today_learning_tasks": ["作业训练"]
+      },
+      "expect": {
+        "status": 200,
+        "json_paths": {
+          "risk.risk_level": "red",
+          "action_plan.reminders.__len__": 2,
+          "action_plan.three_step_action.__len__": 3
+        },
+        "non_empty": ["today_one_thing", "action_plan.headline", "action_plan.parent_phrase"]
+      }
+    },
+    {
+      "name": "get_today_status",
+      "method": "GET",
+      "path": "/api/checkin/today/{{family_id}}?date={{today}}",
+      "expect": {
+        "status": 200,
+        "json_paths": {
+          "needs_checkin": false,
+          "risk.risk_level": "red"
+        },
+        "non_empty": ["today_one_thing", "action_plan.summary"]
+      }
+    }
+  ]
+}

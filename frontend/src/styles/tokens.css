@@ -1,50 +1,278 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600;700&family=Sora:wght@400;500;600;700;800&display=swap');
 
 :root {
   color-scheme: light;
-  --font-ui: 'Manrope', 'Noto Sans SC', sans-serif;
-  --bg: linear-gradient(180deg, #fcf7f1 0%, #f7efe6 54%, #f3ecdf 100%);
-  --card-bg: rgba(255, 250, 245, 0.82);
-  --card-elevated: rgba(255, 253, 249, 0.9);
-  --card-border: rgba(194, 165, 143, 0.28);
-  --hairline: rgba(168, 141, 118, 0.18);
-  --surface-soft: rgba(255, 244, 236, 0.72);
-  --surface-accent: rgba(244, 229, 219, 0.76);
-  --text: #5d4a40;
-  --text-strong: #352722;
-  --muted: #8d7566;
-  --brand: #d89977;
-  --brand-strong: #c6794f;
-  --brand-soft: #f7e3d5;
-  --accent: #96b39b;
-  --accent-soft: #e3ece2;
-  --ok: #6c9f84;
-  --warn: #c89d53;
-  --danger: #c6706a;
-  --shadow-sm: 0 16px 34px rgba(124, 96, 76, 0.1);
-  --shadow-md: 0 24px 52px rgba(124, 96, 76, 0.14);
-  --shadow-lg: 0 32px 80px rgba(124, 96, 76, 0.18);
-  --focus-ring: 0 0 0 4px rgba(216, 153, 119, 0.18);
+  --font-ui: 'Sora', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-display: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+  --bg:
+    radial-gradient(circle at 10% 0%, rgba(228, 95, 67, 0.14), transparent 24%),
+    radial-gradient(circle at 88% 12%, rgba(112, 157, 141, 0.16), transparent 24%),
+    linear-gradient(180deg, #fbf4ec 0%, #f5ece3 42%, #efe4d8 100%);
+  --card-bg: rgba(254, 250, 246, 0.76);
+  --card-elevated: rgba(255, 252, 248, 0.92);
+  --card-border: rgba(124, 90, 68, 0.16);
+  --hairline: rgba(101, 74, 57, 0.12);
+  --surface-soft: rgba(251, 244, 236, 0.74);
+  --surface-accent: rgba(248, 225, 210, 0.58);
+  --surface-contrast: rgba(36, 30, 28, 0.84);
+  --text: #574235;
+  --text-strong: #211815;
+  --muted: #776154;
+  --brand: #df7153;
+  --brand-strong: #c44b2f;
+  --brand-soft: #f7ddd3;
+  --accent: #7ea99a;
+  --accent-strong: #547a6d;
+  --accent-soft: #e1ece7;
+  --ok: #69876b;
+  --warn: #b78339;
+  --danger: #c9615c;
+  --shadow-sm: 0 18px 34px rgba(73, 48, 34, 0.1);
+  --shadow-md: 0 30px 74px rgba(73, 48, 34, 0.14);
+  --shadow-lg: 0 46px 126px rgba(66, 42, 30, 0.18);
+  --focus-ring: 0 0 0 4px rgba(196, 75, 47, 0.16);
+  --workspace-panel-border: rgba(163, 180, 214, 0.14);
+  --workspace-app-bg:
+    radial-gradient(circle at 10% 18%, rgba(255, 123, 75, 0.18), transparent 24%),
+    radial-gradient(circle at 88% 12%, rgba(87, 150, 235, 0.18), transparent 24%),
+    radial-gradient(circle at 52% 80%, rgba(141, 104, 255, 0.08), transparent 28%),
+    linear-gradient(180deg, #0b0f1b 0%, #071225 46%, #0b1630 100%);
+  --workspace-app-divider: rgba(163, 180, 214, 0.16);
+  --workspace-nav-bg:
+    radial-gradient(circle at top left, rgba(255, 123, 75, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(10, 17, 31, 0.9), rgba(8, 14, 28, 0.82));
+  --workspace-nav-shadow:
+    0 18px 48px rgba(2, 6, 16, 0.28),
+    inset 0 1px 0 rgba(236, 242, 255, 0.06);
+  --workspace-shell-glow:
+    radial-gradient(circle at 0% 10%, rgba(255, 123, 75, 0.16), transparent 32%),
+    radial-gradient(circle at 100% 0%, rgba(87, 150, 235, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(157, 181, 255, 0.08), transparent 92%);
+  --workspace-hero-bg:
+    radial-gradient(circle at top left, rgba(255, 123, 75, 0.14), transparent 42%),
+    linear-gradient(135deg, rgba(20, 31, 54, 0.68), rgba(9, 16, 32, 0.28));
+  --workspace-panel-bg:
+    linear-gradient(180deg, rgba(18, 27, 47, 0.8), rgba(9, 16, 30, 0.66)),
+    rgba(10, 17, 31, 0.6);
+  --workspace-panel-bg-strong:
+    radial-gradient(circle at top left, rgba(255, 123, 75, 0.14), transparent 30%),
+    linear-gradient(180deg, rgba(18, 27, 47, 0.84), rgba(9, 16, 30, 0.7)),
+    rgba(10, 17, 31, 0.62);
+  --workspace-panel-bg-accent:
+    radial-gradient(circle at top left, rgba(255, 123, 75, 0.14), transparent 30%),
+    radial-gradient(circle at 100% 0%, rgba(87, 150, 235, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(20, 31, 54, 0.82), rgba(10, 17, 31, 0.72));
+  --workspace-panel-text: rgba(236, 241, 251, 0.88);
+  --workspace-panel-text-strong: #f5f7ff;
+  --workspace-panel-muted: rgba(219, 227, 241, 0.76);
+  --workspace-chip-border: rgba(163, 180, 214, 0.14);
+  --workspace-chip-bg: rgba(255, 255, 255, 0.08);
+  --workspace-chip-text: rgba(236, 241, 251, 0.82);
+  --workspace-hover-bg:
+    linear-gradient(180deg, rgba(23, 36, 62, 0.86), rgba(11, 19, 34, 0.74)),
+    rgba(255, 255, 255, 0.04);
+  --workspace-active-border: rgba(255, 123, 75, 0.28);
+  --workspace-active-bg:
+    radial-gradient(circle at top left, rgba(255, 123, 75, 0.18), transparent 36%),
+    linear-gradient(135deg, rgba(23, 36, 62, 0.94), rgba(12, 19, 35, 0.84));
+  --workspace-active-text: #ffffff;
+  --workspace-info-bg: rgba(87, 150, 235, 0.16);
+  --workspace-info-border: rgba(87, 150, 235, 0.22);
+  --workspace-info-text: #dbe8ff;
+  --workspace-warn-bg: rgba(255, 190, 92, 0.14);
+  --workspace-warn-border: rgba(255, 190, 92, 0.2);
+  --workspace-warn-text: #ffd79c;
+  --workspace-ok-bg: rgba(94, 195, 160, 0.14);
+  --workspace-ok-text: #c8f1e6;
+  --workspace-danger-bg: rgba(222, 108, 103, 0.14);
+  --workspace-danger-border: rgba(222, 108, 103, 0.18);
+  --workspace-danger-text: #ffd2cf;
+  --workspace-input-bg: rgba(7, 14, 28, 0.78);
+  --workspace-input-placeholder: rgba(202, 212, 230, 0.52);
+  --workspace-secondary-bg:
+    linear-gradient(180deg, rgba(20, 31, 54, 0.76), rgba(12, 19, 35, 0.68)),
+    rgba(255, 255, 255, 0.04);
+  --workspace-secondary-text: #eef3ff;
+  --workspace-warning-panel-border: rgba(255, 190, 92, 0.18);
+  --workspace-warning-panel-bg:
+    radial-gradient(circle at top left, rgba(255, 190, 92, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(31, 27, 21, 0.86), rgba(18, 16, 13, 0.74));
+  --home-stage-text: #fcf8f1;
+  --home-stage-soft-text: rgba(244, 239, 231, 0.92);
+  --home-stage-muted: rgba(234, 228, 219, 0.82);
+  --home-stage-highlight: #ffd3bc;
+  --home-stage-brand-dot: linear-gradient(135deg, #e88b71, #b7d5e9);
+  --home-stage-brand-shadow: 0 0 18px rgba(232, 139, 113, 0.26);
+  --home-stage-orb-one: radial-gradient(circle, rgba(222, 102, 66, 0.32), transparent 68%);
+  --home-stage-orb-two: radial-gradient(circle, rgba(126, 169, 154, 0.24), transparent 68%);
+  --home-stage-grid-line: rgba(255, 255, 255, 0.05);
+  --home-stage-grid-shadow: rgba(255, 255, 255, 0.04);
+  --home-stage-particle-bg: rgba(255, 255, 255, 0.88);
+  --home-stage-particle-shadow: 0 0 16px rgba(255, 255, 255, 0.45);
+  --home-stage-cta-bg: linear-gradient(135deg, rgba(232, 139, 113, 0.98), rgba(213, 109, 89, 0.94));
+  --home-stage-cta-border: rgba(228, 124, 98, 0.18);
+  --home-stage-cta-text: #10131d;
+  --home-stage-cta-shadow: 0 16px 28px rgba(213, 109, 89, 0.24);
+  --home-stage-secondary-bg: rgba(14, 22, 36, 0.52);
+  --home-stage-secondary-text: rgba(250, 245, 238, 0.96);
+  --home-stage-secondary-border: rgba(255, 255, 255, 0.12);
+  --home-stage-card-bg:
+    radial-gradient(circle at top right, rgba(232, 139, 113, 0.24), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(183, 213, 233, 0.18), transparent 28%),
+    linear-gradient(180deg, rgba(18, 27, 47, 0.88), rgba(9, 16, 30, 0.82));
+  --home-stage-card-shadow:
+    0 30px 70px rgba(5, 10, 18, 0.25),
+    inset 0 0 0 1px rgba(228, 236, 244, 0.04);
+  --home-stage-card-overlay: linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent 30%, transparent 72%, rgba(255, 255, 255, 0.04));
+  --home-stage-card-border: rgba(255, 255, 255, 0.12);
+  --home-stage-route-bg: linear-gradient(180deg, rgba(20, 31, 54, 0.84), rgba(10, 17, 31, 0.76));
+  --home-stage-route-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 0 rgba(0, 0, 0, 0);
+  --home-stage-route-hover-shadow:
+    0 18px 34px rgba(5, 10, 18, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --home-stage-route-hover-shift: -6px;
+  --home-stage-core-bg: linear-gradient(180deg, rgba(252, 247, 241, 0.96), rgba(245, 238, 232, 0.92));
+  --home-stage-flow-card-bg: linear-gradient(180deg, rgba(20, 31, 54, 0.84), rgba(10, 17, 31, 0.76));
+  --home-stage-flow-card-shadow:
+    0 18px 38px rgba(7, 11, 20, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 :root[data-theme='low-stim'] {
-  --bg: linear-gradient(180deg, #f6f2eb 0%, #f1ebe3 100%);
-  --card-bg: rgba(252, 248, 243, 0.92);
-  --card-elevated: rgba(255, 252, 248, 0.96);
-  --card-border: rgba(186, 163, 147, 0.26);
-  --hairline: rgba(163, 142, 127, 0.16);
-  --surface-soft: rgba(247, 241, 234, 0.9);
-  --surface-accent: rgba(244, 235, 227, 0.88);
-  --text: #554840;
-  --text-strong: #332822;
-  --muted: #847165;
-  --brand: #cda085;
-  --brand-strong: #bb8566;
-  --brand-soft: #f3e3d7;
-  --accent: #d8c5b5;
-  --accent-soft: #f2ebe3;
-  --ok: #82977f;
-  --warn: #b89a63;
-  --danger: #b97d78;
-  --focus-ring: 0 0 0 4px rgba(205, 160, 133, 0.16);
+  --bg:
+    radial-gradient(circle at top left, rgba(204, 188, 174, 0.08), transparent 26%),
+    radial-gradient(circle at 84% 12%, rgba(179, 193, 186, 0.08), transparent 20%),
+    linear-gradient(180deg, #f4efe9 0%, #efe9e2 52%, #ebe5de 100%);
+  --card-bg: rgba(250, 246, 241, 0.92);
+  --card-elevated: rgba(253, 249, 245, 0.97);
+  --card-border: rgba(157, 141, 127, 0.18);
+  --hairline: rgba(138, 123, 112, 0.12);
+  --surface-soft: rgba(244, 239, 233, 0.94);
+  --surface-accent: rgba(238, 232, 226, 0.9);
+  --surface-contrast: rgba(78, 70, 63, 0.76);
+  --text: #4f4741;
+  --text-strong: #2f2925;
+  --muted: #786d65;
+  --brand: #a98a78;
+  --brand-strong: #8f715f;
+  --brand-soft: #ebe1d9;
+  --accent: #9daea5;
+  --accent-strong: #7a8f85;
+  --accent-soft: #e7ece8;
+  --ok: #829486;
+  --warn: #ab9472;
+  --danger: #b18b86;
+  --shadow-sm: 0 12px 24px rgba(86, 73, 61, 0.06);
+  --shadow-md: 0 18px 38px rgba(86, 73, 61, 0.08);
+  --shadow-lg: 0 28px 60px rgba(86, 73, 61, 0.1);
+  --focus-ring: 0 0 0 4px rgba(169, 138, 120, 0.14);
+  --workspace-panel-border: rgba(157, 141, 127, 0.16);
+  --workspace-app-bg:
+    radial-gradient(circle at 10% 18%, rgba(210, 194, 181, 0.14), transparent 24%),
+    radial-gradient(circle at 88% 12%, rgba(198, 210, 203, 0.14), transparent 24%),
+    radial-gradient(circle at 52% 80%, rgba(214, 208, 199, 0.1), transparent 28%),
+    linear-gradient(180deg, #f2ede7 0%, #ece6df 46%, #e8e1da 100%);
+  --workspace-app-divider: rgba(157, 141, 127, 0.14);
+  --workspace-nav-bg:
+    radial-gradient(circle at top left, rgba(210, 194, 181, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(249, 245, 240, 0.98), rgba(241, 236, 230, 0.95));
+  --workspace-nav-shadow:
+    0 10px 24px rgba(98, 84, 73, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  --workspace-shell-glow:
+    radial-gradient(circle at 0% 10%, rgba(210, 194, 181, 0.14), transparent 32%),
+    radial-gradient(circle at 100% 0%, rgba(198, 210, 203, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 92%);
+  --workspace-hero-bg:
+    radial-gradient(circle at top left, rgba(210, 194, 181, 0.14), transparent 42%),
+    linear-gradient(135deg, rgba(249, 245, 240, 0.96), rgba(241, 236, 230, 0.88));
+  --workspace-panel-bg:
+    linear-gradient(180deg, rgba(250, 247, 243, 0.98), rgba(244, 239, 232, 0.95)),
+    rgba(239, 232, 224, 0.92);
+  --workspace-panel-bg-strong:
+    radial-gradient(circle at top left, rgba(218, 199, 184, 0.14), transparent 34%),
+    linear-gradient(180deg, rgba(250, 247, 243, 0.99), rgba(243, 238, 231, 0.96)),
+    rgba(238, 232, 224, 0.92);
+  --workspace-panel-bg-accent:
+    radial-gradient(circle at top left, rgba(210, 194, 181, 0.16), transparent 34%),
+    radial-gradient(circle at 100% 0%, rgba(198, 210, 203, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(250, 247, 243, 0.99), rgba(242, 237, 230, 0.96));
+  --workspace-panel-text: rgba(79, 71, 65, 0.9);
+  --workspace-panel-text-strong: #342d28;
+  --workspace-panel-muted: rgba(120, 109, 101, 0.9);
+  --workspace-chip-border: rgba(157, 141, 127, 0.16);
+  --workspace-chip-bg: rgba(244, 239, 233, 0.86);
+  --workspace-chip-text: rgba(88, 80, 73, 0.9);
+  --workspace-hover-bg:
+    linear-gradient(180deg, rgba(248, 244, 239, 0.99), rgba(241, 236, 230, 0.95)),
+    rgba(236, 229, 221, 0.92);
+  --workspace-active-border: rgba(169, 138, 120, 0.22);
+  --workspace-active-bg:
+    radial-gradient(circle at top left, rgba(210, 194, 181, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(248, 244, 239, 0.99), rgba(239, 234, 227, 0.96));
+  --workspace-active-text: #3f3530;
+  --workspace-info-bg: rgba(185, 197, 216, 0.22);
+  --workspace-info-border: rgba(168, 181, 199, 0.2);
+  --workspace-info-text: #5a6679;
+  --workspace-warn-bg: rgba(214, 196, 164, 0.24);
+  --workspace-warn-border: rgba(188, 165, 123, 0.2);
+  --workspace-warn-text: #756246;
+  --workspace-ok-bg: rgba(191, 207, 196, 0.24);
+  --workspace-ok-text: #5d7065;
+  --workspace-danger-bg: rgba(214, 189, 184, 0.24);
+  --workspace-danger-border: rgba(188, 154, 149, 0.2);
+  --workspace-danger-text: #7a5f5a;
+  --workspace-input-bg: rgba(245, 240, 234, 0.96);
+  --workspace-input-placeholder: rgba(128, 117, 108, 0.62);
+  --workspace-secondary-bg:
+    linear-gradient(180deg, rgba(249, 245, 240, 0.98), rgba(241, 236, 230, 0.96)),
+    rgba(237, 230, 223, 0.9);
+  --workspace-secondary-text: #4f4741;
+  --workspace-warning-panel-border: rgba(188, 165, 123, 0.18);
+  --workspace-warning-panel-bg:
+    radial-gradient(circle at top left, rgba(214, 196, 164, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(249, 245, 239, 0.99), rgba(242, 236, 228, 0.96));
+  --home-stage-text: #342d28;
+  --home-stage-soft-text: rgba(69, 61, 56, 0.9);
+  --home-stage-muted: rgba(101, 91, 84, 0.86);
+  --home-stage-highlight: #6f5f55;
+  --home-stage-brand-dot: linear-gradient(135deg, #c9b3a4, #c9d8d0);
+  --home-stage-brand-shadow: 0 0 10px rgba(201, 179, 164, 0.14);
+  --home-stage-orb-one: radial-gradient(circle, rgba(209, 191, 177, 0.2), transparent 70%);
+  --home-stage-orb-two: radial-gradient(circle, rgba(189, 203, 196, 0.18), transparent 70%);
+  --home-stage-grid-line: rgba(125, 116, 108, 0.08);
+  --home-stage-grid-shadow: rgba(150, 139, 127, 0.08);
+  --home-stage-particle-bg: rgba(211, 202, 193, 0.42);
+  --home-stage-particle-shadow: 0 0 8px rgba(211, 202, 193, 0.18);
+  --home-stage-cta-bg: linear-gradient(135deg, rgba(210, 194, 181, 0.92), rgba(193, 206, 199, 0.88));
+  --home-stage-cta-border: rgba(169, 138, 120, 0.14);
+  --home-stage-cta-text: #403833;
+  --home-stage-cta-shadow: 0 8px 18px rgba(125, 110, 98, 0.1);
+  --home-stage-secondary-bg: rgba(251, 247, 242, 0.92);
+  --home-stage-secondary-text: rgba(61, 54, 49, 0.94);
+  --home-stage-secondary-border: rgba(157, 141, 127, 0.16);
+  --home-stage-card-bg:
+    radial-gradient(circle at top right, rgba(210, 194, 181, 0.16), transparent 26%),
+    radial-gradient(circle at bottom left, rgba(198, 210, 203, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(252, 249, 245, 0.99), rgba(244, 239, 232, 0.97));
+  --home-stage-card-shadow:
+    0 14px 30px rgba(98, 84, 73, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  --home-stage-card-overlay: linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 36%, transparent 72%, rgba(255, 255, 255, 0.08));
+  --home-stage-card-border: rgba(157, 141, 127, 0.18);
+  --home-stage-route-bg: linear-gradient(180deg, rgba(252, 248, 243, 0.98), rgba(244, 238, 231, 0.96));
+  --home-stage-route-shadow:
+    inset 0 0 0 1px rgba(157, 141, 127, 0.1),
+    0 0 0 rgba(0, 0, 0, 0);
+  --home-stage-route-hover-shadow:
+    0 10px 20px rgba(98, 84, 73, 0.08),
+    inset 0 0 0 1px rgba(157, 141, 127, 0.14);
+  --home-stage-route-hover-shift: -2px;
+  --home-stage-core-bg: linear-gradient(180deg, rgba(252, 248, 243, 0.98), rgba(245, 240, 234, 0.96));
+  --home-stage-flow-card-bg: linear-gradient(180deg, rgba(248, 244, 239, 0.96), rgba(241, 236, 230, 0.93));
+  --home-stage-flow-card-shadow:
+    0 10px 22px rgba(98, 84, 73, 0.08),
+    inset 0 0 0 1px rgba(157, 141, 127, 0.1);
 }

@@ -1,16 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.agents.coach import CoachAgent
-from app.agents.friction import FrictionAgent
-from app.agents.plan import PlanAgent
-from app.agents.safety import SafetyAgent
-from app.agents.signal import SignalAgent
 from app.api.deps import get_current_user
+from app.core.time import utc_now
 from app.db.base import get_db
 from app.models import Family, IncidentLog, Review, User
 from app.schemas.domain import (
@@ -21,6 +16,8 @@ from app.schemas.domain import (
     ScriptGenerateRequest,
     ScriptGenerateResponse,
 )
+from app.services.decision_orchestrator import DecisionOrchestrator
+from app.services.policy_learning import PolicyLearningService
 
 router = APIRouter(prefix="/scripts", tags=["scripts"])
 
@@ -91,26 +88,12 @@ def generate_script(
     if family is None:
         raise HTTPException(status_code=404, detail="Family not found")
 
-    script = PlanAgent().generate_script(
-        db=db,
-        family=family,
-        scenario=payload.scenario,
-        intensity=payload.intensity,
-        free_text=payload.free_text,
-    )
-
-    profile_donts = family.child_profile.donts if family.child_profile else []
-    safety = SafetyAgent().validate_script(
-        script=script,
-        profile_donts=profile_donts,
-        explicit_high_risk=payload.high_risk_selected,
-        free_text=payload.free_text,
-    )
+    result = DecisionOrchestrator().generate_script(db=db, family=family, payload=payload)
 
     db.add(
         IncidentLog(
             family_id=payload.family_id,
-            ts=datetime.utcnow(),
+            ts=utc_now(),
             scenario=payload.scenario,
             intensity=payload.intensity,
             triggers=[],
@@ -121,10 +104,29 @@ def generate_script(
     )
     db.commit()
 
-    if safety.blocked:
-        return ScriptGenerateResponse(blocked=True, safety_block=safety.block)
+    if result.safety.blocked:
+        return ScriptGenerateResponse(
+            blocked=True,
+            safety_block=result.safety.block,
+            evidence_bundle=result.evidence_bundle if payload.include_debug else None,
+            decision_trace_id=result.trace_id if payload.include_debug else None,
+            decision_summary=result.safety_review.summary if payload.include_debug else None,
+        )
+    if result.evidence_review.blocked:
+        db.commit()
+        raise HTTPException(status_code=422, detail=result.evidence_review.summary)
 
-    return ScriptGenerateResponse(blocked=False, script=script)
+    return ScriptGenerateResponse(
+        blocked=False,
+        script=result.script,
+        evidence_bundle=result.evidence_bundle if payload.include_debug else None,
+        decision_trace_id=result.trace_id if payload.include_debug else None,
+        decision_summary=(
+            "规则降级已触发，但证据链和安全审查通过。"
+            if payload.include_debug and result.fallback_reason
+            else (result.evidence_bundle.ranking_summary if payload.include_debug else None)
+        ),
+    )
 
 
 @router.post("/friction-support", response_model=FrictionSupportGenerateResponse)
@@ -137,29 +139,31 @@ def generate_friction_support(
     if family is None:
         raise HTTPException(status_code=404, detail="Family not found")
 
-    signal = SignalAgent().evaluate(db=db, family_id=payload.family_id)
-    support = FrictionAgent().generate_support(db=db, family=family, signal=signal, payload=payload)
-
-    profile_donts = family.child_profile.donts if family.child_profile else []
-    safety = SafetyAgent().validate_friction_support(
-        support=support,
-        profile_donts=profile_donts,
-        explicit_high_risk=payload.high_risk_selected,
-        free_text=payload.free_text,
-    )
-    if safety.blocked:
-        return FrictionSupportGenerateResponse(blocked=True, risk=signal, safety_block=safety.block)
+    result = DecisionOrchestrator().generate_friction_support(db=db, family=family, payload=payload)
+    if result.safety.blocked:
+        db.commit()
+        return FrictionSupportGenerateResponse(
+            blocked=True,
+            risk=result.signal,
+            safety_block=result.safety.block,
+            evidence_bundle=result.evidence_bundle if payload.include_debug else None,
+            decision_trace_id=result.trace_id if payload.include_debug else None,
+            decision_summary=result.safety_review.summary if payload.include_debug else None,
+        )
+    if result.evidence_review.blocked:
+        db.commit()
+        raise HTTPException(status_code=422, detail=result.evidence_review.summary)
 
     incident = IncidentLog(
         family_id=payload.family_id,
-        ts=datetime.utcnow(),
+        ts=utc_now(),
         scenario=_friction_incident_scenario(payload),
         intensity=_friction_intensity(payload),
         triggers=[payload.child_state, *payload.env_changes[:2]],
         selected_resources={
             "base_scenario": payload.scenario,
-            "source_card_ids": support.source_card_ids,
-            "respite_title": support.respite_suggestion.title,
+            "source_card_ids": result.support.source_card_ids,
+            "respite_title": result.support.respite_suggestion.title,
         },
         high_risk_flag=payload.high_risk_selected,
         notes=payload.free_text,
@@ -171,8 +175,11 @@ def generate_friction_support(
     return FrictionSupportGenerateResponse(
         blocked=False,
         incident_id=incident.id,
-        risk=signal,
-        support=support,
+        risk=result.signal,
+        support=result.support,
+        evidence_bundle=result.evidence_bundle if payload.include_debug else None,
+        decision_trace_id=result.trace_id if payload.include_debug else None,
+        decision_summary=result.evidence_bundle.ranking_summary if payload.include_debug else None,
     )
 
 
@@ -215,6 +222,14 @@ def submit_friction_support_feedback(
     db.add(review)
     db.flush()
 
+    PolicyLearningService().record_review(
+        db=db,
+        family_id=payload.family_id,
+        outcome_score=score,
+        card_ids=payload.source_card_ids,
+        scenario=incident.scenario,
+        response_action=" / ".join(payload.source_card_ids[:2]),
+    )
     updated_weights = CoachAgent().update_preference_weights(db=db, family_id=payload.family_id)
     db.commit()
 

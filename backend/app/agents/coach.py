@@ -2,17 +2,15 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections import defaultdict
 from dataclasses import asdict, dataclass
 
 from pydantic import ValidationError
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import AuditLog, Review
+from app.models import AuditLog
 from app.schemas.domain import TodayFocusResponse
 from app.services.llm_client import LLMClient, LLMUnavailableError
-from app.services.review_learning import is_learnable_card_id
+from app.services.policy_learning import PolicyLearningService
 from app.services.rule_fallback import build_fallback_coach_tip, build_fallback_today_focus
 
 
@@ -88,17 +86,7 @@ class CoachAgent:
 
     def update_preference_weights(self, db: Session, family_id: int) -> dict[str, float]:
         db.flush()
-        reviews = db.scalars(select(Review).where(Review.family_id == family_id)).all()
-        bucket: dict[str, list[int]] = defaultdict(list)
-        for review in reviews:
-            for card_id in review.card_ids:
-                if not is_learnable_card_id(card_id):
-                    continue
-                bucket[card_id].append(review.outcome_score)
-
-        weights: dict[str, float] = {}
-        for card_id, scores in bucket.items():
-            weights[card_id] = round(sum(scores) / len(scores), 3)
+        weights = PolicyLearningService().rebuild_card_weights(db=db, family_id=family_id)
 
         payload = json.dumps({"family_id": family_id, "weights": weights}, sort_keys=True, ensure_ascii=False)
         payload_hash = hashlib.sha256(payload.encode("utf-8")).hexdigest()

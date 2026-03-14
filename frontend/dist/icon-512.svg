@@ -1,5 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="72" fill="#0f2f2b" />
-  <circle cx="256" cy="198" r="74" fill="#f2e8d5" />
-  <path d="M122 386c26-58 62-86 134-86s108 28 134 86" stroke="#f2e8d5" stroke-width="28" fill="none" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="bg512" x1="72" y1="60" x2="444" y2="452" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e57b58" />
+      <stop offset="0.58" stop-color="#cc5d43" />
+      <stop offset="1" stop-color="#8ea79a" />
+    </linearGradient>
+    <radialGradient id="glow512" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(164 126) rotate(40) scale(196 168)">
+      <stop offset="0" stop-color="#fff3ea" stop-opacity="0.56" />
+      <stop offset="1" stop-color="#fff3ea" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="106" fill="#271a24" />
+  <rect x="48" y="48" width="416" height="416" rx="100" fill="url(#bg512)" />
+  <rect x="48" y="48" width="416" height="416" rx="100" fill="url(#glow512)" />
+  <rect x="144" y="150" width="224" height="170" rx="48" fill="none" stroke="#fff7ef" stroke-width="18" />
+  <circle cx="328" cy="192" r="14" fill="#fff7ef" />
+  <path
+    d="M188 244h30l22-36 30 69 21-35h37"
+    fill="none"
+    stroke="#fff7ef"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="18"
+  />
 </svg>

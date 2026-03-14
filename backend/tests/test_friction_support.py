@@ -46,6 +46,8 @@ def test_friction_support_generate_and_feedback(db_session: Session, seeded_fami
         assert generated["blocked"] is False
         assert generated["incident_id"] > 0
         assert generated["risk"]["risk_level"] in {"green", "yellow", "red"}
+        assert len(generated["support"]["why_this_plan"]) >= 2
+        assert len(generated["support"]["excluded_actions"]) >= 2
         assert len(generated["support"]["action_plan"]) == 3
         assert len(generated["support"]["donts"]) >= 3
         assert len(generated["support"]["say_this"]) >= 2
@@ -54,6 +56,7 @@ def test_friction_support_generate_and_feedback(db_session: Session, seeded_fami
         assert generated["support"]["low_stim_mode"]["headline"]
         assert len(generated["support"]["crisis_card"]["first_do"]) == 3
         assert generated["support"]["school_message"]
+        assert len(generated["support"]["handoff_messages"]) == 3
         assert len(generated["support"]["source_card_ids"]) >= 1
 
         feedback_response = client.post(

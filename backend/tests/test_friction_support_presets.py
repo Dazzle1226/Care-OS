@@ -50,9 +50,12 @@ def test_friction_support_quick_presets_return_action_card(
     body = response.json()
     assert body["blocked"] is False
     assert body["support"]["preset_label"] == preset_label
+    assert len(body["support"]["why_this_plan"]) >= 2
+    assert len(body["support"]["excluded_actions"]) >= 2
     assert len(body["support"]["action_plan"]) == 3
     assert len(body["support"]["donts"]) >= 3
     assert len(body["support"]["say_this"]) >= 2
+    assert len(body["support"]["handoff_messages"]) == 3
     assert len(body["support"]["crisis_card"]["first_do"]) == 3
     assert len(body["support"]["crisis_card"]["donts"]) == 3
     assert len(body["support"]["crisis_card"]["exit_plan"]) == 3

@@ -1,0 +1,89 @@
+{
+  "id": "training_learning_loop",
+  "title": "长期训练能生成优先域、能力详情并在反馈后输出调整",
+  "setup": {
+    "profile_patch": {
+      "school_context": {
+        "child_name": "小雨",
+        "child_age": 8,
+        "interests": ["地铁"],
+        "likes": ["拼图"],
+        "learning_needs": ["表达需求", "作业启动", "等待轮流"],
+        "social_training": ["轮流游戏"],
+        "emotion_patterns": ["焦虑时会躲起来"],
+        "behavior_patterns": ["任务开始困难", "关屏时容易升级"],
+        "available_supporters": ["爸爸"],
+        "school_notes": "入园前切换困难，作业开始也容易卡住"
+      }
+    },
+    "review_entries": [
+      {
+        "scenario": "transition",
+        "intensity": "medium",
+        "notes": "关屏后切换困难",
+        "card_ids": ["CARD-1"],
+        "outcome_score": 0,
+        "child_state_after": "partly_settled",
+        "caregiver_state_after": "same",
+        "recommendation": "replace",
+        "followup_action": "下次提前预告"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "generate_training",
+      "method": "POST",
+      "path": "/api/training/generate",
+      "body": {
+        "family_id": "{{family_id}}",
+        "extra_context": "最近入园前会躲到桌下，需要更容易开始的方案。"
+      },
+      "expect": {
+        "status": 200,
+        "json_paths": {
+          "summary.priority_domain_count": 3
+        },
+        "min_lengths": {
+          "priority_domains": 3
+        },
+        "non_empty": ["summary.summary_text", "today_tasks.0.title"]
+      }
+    },
+    {
+      "name": "get_training_domain",
+      "method": "GET",
+      "path": "/api/training/domain/{{family_id}}/transition_flexibility",
+      "expect": {
+        "status": 200,
+        "min_lengths": {
+          "reason_for_priority": 2
+        },
+        "non_empty": ["importance_summary", "script_examples.0", "fallback_options.0"]
+      }
+    },
+    {
+      "name": "submit_training_feedback",
+      "method": "POST",
+      "path": "/api/training/feedback",
+      "body": {
+        "family_id": "{{family_id}}",
+        "task_instance_id": "{{generate_training.today_tasks.0.task_instance_id}}",
+        "completion_status": "partial",
+        "child_response": "overloaded",
+        "helpfulness": "not_helpful",
+        "obstacle_tag": "too_hard",
+        "notes": "开始两分钟后就想逃开。"
+      },
+      "expect": {
+        "status": 200,
+        "min_lengths": {
+          "dashboard.recent_adjustments": 1
+        },
+        "any_contains": {
+          "adjustment_summary": ["降级", "低负担"]
+        }
+      }
+    }
+  ]
+}

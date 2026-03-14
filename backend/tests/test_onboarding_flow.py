@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.agents.support_cards import SupportCardAgent
 from app.main import app
 from app.models import ChildProfile, Family
 
@@ -94,3 +95,18 @@ def test_get_onboarding_family_supports_existing_profiles(seeded_family) -> None
     assert payload["snapshot"]["caregiver_pressure"] == ["暂未填写压力源"]
     assert payload["snapshot"]["supporter_summary"] == ["暂未标记可用支持者"]
     assert len(payload["support_cards"]) == 2
+
+
+def test_get_onboarding_family_skips_llm_card_generation(seeded_family, monkeypatch) -> None:
+    def fail_attempt(self, family, profile):
+        raise AssertionError("GET /api/onboarding/family should not attempt LLM support card generation")
+
+    monkeypatch.setattr(SupportCardAgent, "_attempt_llm_cards", fail_attempt)
+
+    with TestClient(app) as client:
+        headers = _auth_headers(client)
+        response = client.get(f"/api/onboarding/family/{seeded_family.family_id}", headers=headers)
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert [card["card_id"] for card in payload["support_cards"]] == ["ONB-SUPPORT", "ONB-HANDOFF"]

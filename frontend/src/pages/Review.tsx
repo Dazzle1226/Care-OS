@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { ReviewCard } from '../components/ReviewCard';
 import { TagSelector } from '../components/TagSelector';
 import {
-  exportWeeklyReport,
   getMonthlyReport,
   getWeeklyReport,
   submitReportFeedback,
@@ -100,7 +99,6 @@ export function ReviewPage({ token, familyId, actionContext, onNavigate, onActio
   const [monthlyReport, setMonthlyReport] = useState<MonthlyReport | null>(null);
   const [loadingReports, setLoadingReports] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [exportingWeekly, setExportingWeekly] = useState(false);
   const [feedbackSavingKey, setFeedbackSavingKey] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -214,22 +212,6 @@ export function ReviewPage({ token, familyId, actionContext, onNavigate, onActio
     }
   };
 
-  const handleExport = async () => {
-    if (!familyId) return;
-    setExportingWeekly(true);
-    setError('');
-    setNotice('');
-    try {
-      await exportWeeklyReport(token, familyId, weekStart);
-      await refreshWeekly();
-      setNotice('周报已导出。');
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setExportingWeekly(false);
-    }
-  };
-
   const handleFeedback = async (payload: {
     periodType: 'weekly' | 'monthly';
     periodStart: string;
@@ -269,7 +251,8 @@ export function ReviewPage({ token, familyId, actionContext, onNavigate, onActio
   }
 
   return (
-    <div className="review-page">
+    <div className="content-page-shell review-page-shell">
+      <div className="review-page">
       <section className="panel review-quick-panel">
         <div className="review-form-header">
           <div>
@@ -458,22 +441,18 @@ export function ReviewPage({ token, familyId, actionContext, onNavigate, onActio
 
         <div className="review-toolbar-meta">
           {loadingReports ? <span className="status-pill">同步中</span> : null}
-          {activePeriod === 'weekly' ? (
-            <button className="btn secondary" type="button" onClick={handleExport} disabled={exportingWeekly}>
-              {exportingWeekly ? '导出中...' : '导出周报'}
-            </button>
-          ) : null}
         </div>
       </section>
 
-      <ReviewCard
-        activePeriod={activePeriod}
-        weeklyReport={weeklyReport}
-        monthlyReport={monthlyReport}
-        loading={loadingReports}
-        feedbackSavingKey={feedbackSavingKey}
-        onFeedback={handleFeedback}
-      />
+        <ReviewCard
+          activePeriod={activePeriod}
+          weeklyReport={weeklyReport}
+          monthlyReport={monthlyReport}
+          loading={loadingReports}
+          feedbackSavingKey={feedbackSavingKey}
+          onFeedback={handleFeedback}
+        />
+      </div>
     </div>
   );
 }

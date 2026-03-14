@@ -24,6 +24,7 @@ from app.schemas.domain import (
     TrendDeltaItem,
     WeeklyReportResponse,
 )
+from app.services.policy_learning import PolicyLearningService
 from app.services.review_learning import (
     build_replay_response,
     is_learnable_card_id,
@@ -77,7 +78,7 @@ def _scenario_label(value: str | None) -> str:
 
 
 def _strategy_ranking_summary() -> str:
-    return "排序先看平均效果，再看有效率、适配率和证据数；只有低风险且样本少的策略，才会被保留在前排继续验证。"
+    return "排序先看平均效果，再看有效率、适配率、证据数和家庭级策略权重；只有低风险且样本少的策略，才会被保留在前排继续验证。"
 
 
 def _applicability_label(fit_rate: int) -> str:
@@ -322,11 +323,19 @@ def _fallback_strategies(profile: ChildProfile | None) -> list[StrategyInsight]:
 
 
 def _build_strategy_insights(
+    db: Session,
+    family_id: int,
     reviews: list[Review],
     incident_map: dict[int, IncidentLog],
     card_titles: dict[str, str],
     profile: ChildProfile | None,
 ) -> list[StrategyInsight]:
+    policy_weights = PolicyLearningService().get_effective_weight_map(
+        db=db,
+        family_id=family_id,
+        target_kind="card",
+        profile=profile,
+    )
     bucket: dict[str, list[Review]] = defaultdict(list)
     for review in reviews:
         for card_id in review.card_ids:
@@ -380,6 +389,11 @@ def _build_strategy_insights(
             why_ranked.append("当前样本少，仅在低风险场景保留前排验证。")
         else:
             why_ranked.append(f"已累计 {total} 次家庭内证据，建议{recommendation_label(recommendation)}。")
+        policy_weight = policy_weights.get(card_id, 0.0)
+        if policy_weight > 0.15:
+            why_ranked.append("家庭级持续学习对这类策略给出了正向加权。")
+        elif policy_weight < -0.15:
+            why_ranked.append("家庭级持续学习对这类策略给出了负向惩罚。")
 
         insight = StrategyInsight(
             target_key=f"card:{card_id}",
@@ -399,6 +413,7 @@ def _build_strategy_insights(
             + fit_rate * 0.2
             + continue_rate * 0.12
             + min(total, 4) * 3
+            + policy_weight * 12
             - recent_negative_hits * 5
         )
         ranked_rows.append((ranking_score, insight))
@@ -645,7 +660,7 @@ def compute_weekly_report(db: Session, family_id: int, week_start: date) -> Week
         card_titles,
     )
     caregiver_summary, avg_stress, peak_stress, avg_sleep = _build_caregiver_summary(checkins)
-    strategy_top3 = _build_strategy_insights(reviews, incident_map, card_titles, profile)
+    strategy_top3 = _build_strategy_insights(db, family_id, reviews, incident_map, card_titles, profile)
     replay_items = _build_replay_items(reviews, incident_map, card_titles)
     next_actions = _build_weekly_actions(
         top_triggers=top_triggers,
@@ -916,7 +931,7 @@ def compute_monthly_report(db: Session, family_id: int, month_start: date) -> Mo
             previous_reviews,
         ),
         strategy_ranking_summary=_strategy_ranking_summary(),
-        successful_methods=_build_strategy_insights(current_reviews, current_incident_map, card_titles, profile),
+        successful_methods=_build_strategy_insights(db, family_id, current_reviews, current_incident_map, card_titles, profile),
         next_month_plan=_build_monthly_actions(top_triggers, current_checkins, current_incidents, current_reviews),
         history=_build_monthly_history(db, family_id, normalized_start),
         feedback_summary=_build_feedback_summary(feedback_rows),
@@ -955,6 +970,13 @@ def save_report_feedback(db: Session, payload: ReportFeedbackCreate) -> ReportFe
         row.note = payload.note
         db.flush()
 
+    PolicyLearningService().record_report_feedback(
+        db=db,
+        family_id=payload.family_id,
+        target_kind=payload.target_kind,
+        target_key=payload.target_key,
+        feedback=payload.feedback,
+    )
     rows = _load_feedback_rows(db, payload.family_id, payload.period_type, period_start)
     return ReportFeedbackResponse(
         feedback_id=row.id,

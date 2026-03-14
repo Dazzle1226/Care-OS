@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
+from app.core.time import utc_now
 from app.models import DailyTrainingTask, Family, TrainingAdjustmentLog, TrainingSkillState, TrainingTaskFeedback
 
 RISK_NOTE_KEYWORDS = ("崩溃", "打人", "自伤", "撞头", "咬人", "逃跑", "危险", "窒息", "伤人")
@@ -170,7 +171,7 @@ def apply_feedback_adjustment(
         adjustment_title = "连续未完成后减量"
         adjustment_summary = "因为连续两天未完成，系统已经减少负担并建议重新固定训练时段。"
 
-    state.last_adjusted_at = datetime.utcnow()
+    state.last_adjusted_at = utc_now()
 
     after = {
         "stage": state.current_stage,

@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-from datetime import datetime
-
 from sqlalchemy.orm import Session
 
 from app.agents.coach import CoachAgent
+from app.core.time import utc_now
 from app.models import IncidentLog, Review
 
 
 def test_coach_updates_positive_weight(db_session: Session, seeded_family) -> None:
     incident = IncidentLog(
         family_id=seeded_family.family_id,
-        ts=datetime.utcnow(),
+        ts=utc_now(),
         scenario="transition",
         intensity="medium",
         triggers=["等待"],
@@ -53,7 +52,7 @@ def test_coach_updates_positive_weight(db_session: Session, seeded_family) -> No
 def test_coach_ignores_manual_review_placeholders(db_session: Session, seeded_family) -> None:
     incident = IncidentLog(
         family_id=seeded_family.family_id,
-        ts=datetime.utcnow(),
+        ts=utc_now(),
         scenario="transition",
         intensity="medium",
         triggers=["等待"],

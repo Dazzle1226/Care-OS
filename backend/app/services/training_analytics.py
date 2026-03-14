@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from datetime import date as date_type, datetime, timedelta
+from datetime import date as date_type, timedelta
 
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
+from app.core.time import utc_now
 from app.models import DailyTrainingTask, Family, TrainingAdjustmentLog, TrainingPlanCycle, TrainingSkillState, TrainingTaskFeedback
 from app.schemas.domain import (
     DailyTrainingTaskRead,
@@ -290,7 +291,7 @@ def _task_read(item: DailyTrainingTask) -> DailyTrainingTaskRead:
     payload = item.task_json
     reminder_status = item.reminder_status
     highlight = False
-    if item.reminder_at and item.reminder_at <= datetime.utcnow() and item.status in {"pending", "scheduled"}:
+    if item.reminder_at and item.reminder_at <= utc_now() and item.status in {"pending", "scheduled"}:
         reminder_status = "due"
         highlight = True
 
@@ -309,6 +310,8 @@ def _task_read(item: DailyTrainingTask) -> DailyTrainingTaskRead:
         materials=[str(material) for material in payload.get("materials", []) if isinstance(material, str)][:5],
         fallback_plan=str(payload.get("fallback_plan") or ""),
         coaching_tip=str(payload.get("coaching_tip") or ""),
+        coordination_mode=str(payload.get("coordination_mode") or "ready"),  # type: ignore[arg-type]
+        why_today=str(payload.get("why_today") or ""),
         status=item.status,
         reminder_status=reminder_status,
         reminder_at=item.reminder_at,
@@ -345,6 +348,11 @@ def build_training_dashboard(
         .order_by(desc(TrainingAdjustmentLog.created_at))
         .limit(5)
     ).all()
+    coordination = cycle.snapshot_json.get("coordination", {}) if isinstance(cycle.snapshot_json, dict) else {}
+    readiness_status = str(coordination.get("readiness_status") or "ready")
+    readiness_reason = str(coordination.get("readiness_reason") or "当前状态允许按计划推进今天训练。")
+    recommended_action = str(coordination.get("recommended_action") or "按今天任务顺序练，先完成第一项。")
+    coordination_hint = str(coordination.get("coordination_hint") or recommended_action)
 
     week_feedbacks = [item for item in feedbacks if item.date >= today - timedelta(days=6)]
     week_completed_count = sum(item.completion_status in {"done", "partial"} for item in week_feedbacks)
@@ -374,6 +382,7 @@ def build_training_dashboard(
                 has_today_task=state.area_key in today_area_keys,
                 current_status=state.risk_summary or get_domain(state.area_key).importance,
                 improvement_value=get_domain(state.area_key).importance,
+                coordination_hint=coordination_hint if state.area_key in cycle.top_area_keys[:1] else "",
             )
         )
 
@@ -394,6 +403,9 @@ def build_training_dashboard(
             priority_domain_count=len(priority_domains),
             streak_days=progress_overview.streak_days,
             current_load_level=cycle.load_level,
+            readiness_status=readiness_status,  # type: ignore[arg-type]
+            readiness_reason=readiness_reason,
+            recommended_action=recommended_action,
             summary_text=cycle.weekly_summary or "系统会根据孩子情况持续给出个性化训练建议。",
         ),
         priority_domains=priority_domains,

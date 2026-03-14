@@ -223,12 +223,21 @@ def _build_snapshot(profile: ChildProfile) -> OnboardingSnapshot:
         recommended_focus=f"先稳定 {focus_label}，尤其留意“{trigger}”相关触发，并把今日任务降到最小可执行步骤。",
     )
 
-def _build_response(family: Family, profile: ChildProfile) -> OnboardingSetupResponse:
+def _build_response(
+    family: Family,
+    profile: ChildProfile,
+    *,
+    prefer_llm_cards: bool = True,
+) -> OnboardingSetupResponse:
     return OnboardingSetupResponse(
         family=FamilyRead.model_validate(family, from_attributes=True),
         profile=ChildProfileRead.model_validate(profile, from_attributes=True),
         snapshot=_build_snapshot(profile),
-        support_cards=SupportCardAgent().generate_cards(family=family, profile=profile),
+        support_cards=SupportCardAgent().generate_cards(
+            family=family,
+            profile=profile,
+            prefer_llm=prefer_llm_cards,
+        ),
     )
 
 
@@ -277,4 +286,4 @@ def get_onboarding_family(
     if profile is None:
         raise HTTPException(status_code=404, detail="Profile not found")
 
-    return _build_response(family, profile)
+    return _build_response(family, profile, prefer_llm_cards=False)

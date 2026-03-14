@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime, time, timedelta
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.main import app
@@ -31,14 +32,32 @@ def _previous_month_start(target: date) -> date:
     return _month_start(first - timedelta(days=1))
 
 
+def _occupied_checkin_dates(db_session: Session, family_id: int) -> set[date]:
+    return set(db_session.scalars(select(DailyCheckin.date).where(DailyCheckin.family_id == family_id)).all())
+
+
+def _first_available_dates(start: date, count: int, occupied: set[date], *, window_days: int) -> list[date]:
+    available: list[date] = []
+    for offset in range(window_days):
+        candidate = start + timedelta(days=offset)
+        if candidate in occupied:
+            continue
+        available.append(candidate)
+        if len(available) == count:
+            return available
+    raise AssertionError("Not enough available dates for report fixtures")
+
+
 def test_weekly_report_includes_summary_and_feedback(db_session: Session, seeded_family) -> None:
     today = date.today()
     week_start = _week_start(today)
+    occupied = _occupied_checkin_dates(db_session, seeded_family.family_id)
+    weekly_dates = _first_available_dates(week_start, 2, occupied, window_days=7)
 
     extra_checkins = [
         DailyCheckin(
             family_id=seeded_family.family_id,
-            date=week_start + timedelta(days=2),
+            date=weekly_dates[0],
             child_sleep_hours=6.5,
             meltdown_count=1,
             transition_difficulty=7.0,
@@ -50,7 +69,7 @@ def test_weekly_report_includes_summary_and_feedback(db_session: Session, seeded
         ),
         DailyCheckin(
             family_id=seeded_family.family_id,
-            date=week_start + timedelta(days=3),
+            date=weekly_dates[1],
             child_sleep_hours=7.0,
             meltdown_count=0,
             transition_difficulty=5.0,
@@ -65,7 +84,7 @@ def test_weekly_report_includes_summary_and_feedback(db_session: Session, seeded
 
     incident = IncidentLog(
         family_id=seeded_family.family_id,
-        ts=datetime.combine(week_start + timedelta(days=2), time(hour=18)),
+        ts=datetime.combine(weekly_dates[0], time(hour=18)),
         scenario="transition",
         intensity="medium",
         triggers=["等待", "噪音"],
@@ -83,7 +102,7 @@ def test_weekly_report_includes_summary_and_feedback(db_session: Session, seeded
         outcome_score=1,
         notes="提前预告后稍有改善",
         followup_action="保留睡前过渡预告",
-        created_at=datetime.combine(week_start + timedelta(days=3), time(hour=9)),
+        created_at=datetime.combine(weekly_dates[1], time(hour=9)),
     )
     db_session.add(review)
     db_session.commit()
@@ -148,6 +167,8 @@ def test_monthly_report_returns_trends_and_history(db_session: Session, seeded_f
     today = date.today()
     month_start = _month_start(today)
     previous_month = _previous_month_start(today)
+    occupied = _occupied_checkin_dates(db_session, seeded_family.family_id)
+    current_month_date = _first_available_dates(month_start, 1, occupied, window_days=31)[0]
 
     db_session.add_all(
         [
@@ -165,7 +186,7 @@ def test_monthly_report_returns_trends_and_history(db_session: Session, seeded_f
             ),
             DailyCheckin(
                 family_id=seeded_family.family_id,
-                date=month_start + timedelta(days=3),
+                date=current_month_date,
                 child_sleep_hours=7.0,
                 meltdown_count=1,
                 transition_difficulty=6.0,
@@ -190,7 +211,7 @@ def test_monthly_report_returns_trends_and_history(db_session: Session, seeded_f
     )
     current_incident = IncidentLog(
         family_id=seeded_family.family_id,
-        ts=datetime.combine(month_start + timedelta(days=5), time(hour=19)),
+        ts=datetime.combine(current_month_date, time(hour=19)),
         scenario="transition",
         intensity="medium",
         triggers=["过渡", "噪音"],
@@ -219,7 +240,7 @@ def test_monthly_report_returns_trends_and_history(db_session: Session, seeded_f
                 outcome_score=2,
                 notes="本月执行效果不错",
                 followup_action="继续提前预告",
-                created_at=datetime.combine(month_start + timedelta(days=6), time(hour=11)),
+                created_at=datetime.combine(current_month_date + timedelta(days=1), time(hour=11)),
             ),
         ]
     )

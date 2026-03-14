@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.main import app
-from app.models import ChildProfile, DailyCheckin, IncidentLog, Review, TrainingSkillState, TrainingTaskFeedback
+from app.models import ChildProfile, DailyCheckin, FamilyPolicyWeight, IncidentLog, Review, TrainingSkillState, TrainingTaskFeedback
 
 
 def _auth_headers(client: TestClient) -> dict[str, str]:
@@ -39,6 +39,12 @@ def test_training_dashboard_generation_reminder_and_feedback_loop(db_session: Se
         .order_by(DailyCheckin.date.desc())
     ).all()
     assert len(recent_checkins) >= 2
+    recent_checkins[0].meltdown_count = 1
+    recent_checkins[0].transition_difficulty = 5.0
+    recent_checkins[0].sensory_overload_level = "light"
+    recent_checkins[0].caregiver_stress = 5.0
+    recent_checkins[0].caregiver_sleep_hours = 7.2
+    recent_checkins[0].support_available = "one"
     recent_checkins[0].details_json = {
         "child_mood_state": "anxious",
         "negative_emotions": ["焦虑"],
@@ -46,6 +52,12 @@ def test_training_dashboard_generation_reminder_and_feedback_loop(db_session: Se
         "today_learning_tasks": ["语言练习", "作业训练"],
         "physical_discomforts": [],
     }
+    recent_checkins[1].meltdown_count = 0
+    recent_checkins[1].transition_difficulty = 4.0
+    recent_checkins[1].sensory_overload_level = "light"
+    recent_checkins[1].caregiver_stress = 4.0
+    recent_checkins[1].caregiver_sleep_hours = 7.8
+    recent_checkins[1].support_available = "one"
     recent_checkins[1].details_json = {
         "child_mood_state": "sensitive",
         "negative_emotions": ["担心"],
@@ -96,12 +108,18 @@ def test_training_dashboard_generation_reminder_and_feedback_loop(db_session: Se
         assert generated["family_id"] == seeded_family.family_id
         assert generated["summary"]["priority_domain_count"] == 3
         assert generated["summary"]["current_load_level"] in {"light", "standard", "adaptive"}
+        assert generated["summary"]["readiness_status"] in {"ready", "lighter"}
+        assert generated["summary"]["readiness_reason"]
+        assert generated["summary"]["recommended_action"]
         assert len(generated["priority_domains"]) == 3
         assert len(generated["today_tasks"]) >= 1
         assert any(item["area_key"] == "transition_flexibility" for item in generated["priority_domains"])
+        assert any(item["coordination_hint"] for item in generated["priority_domains"])
 
         first_task = generated["today_tasks"][0]
         assert any("地铁" in item for item in first_task["materials"] + [first_task["title"]])
+        assert first_task["coordination_mode"] in {"ready", "lighter"}
+        assert first_task["why_today"]
 
         current_response = client.get(f"/api/training/current/{seeded_family.family_id}", headers=headers)
         assert current_response.status_code == 200
@@ -157,6 +175,54 @@ def test_training_dashboard_generation_reminder_and_feedback_loop(db_session: Se
     assert stored_feedbacks[0].task_instance_id == first_task["task_instance_id"]
     assert stored_feedbacks[0].difficulty_rating == "too_hard"
     assert stored_feedbacks[0].helpfulness == "not_helpful"
+    policy_weights = db_session.scalars(
+        select(FamilyPolicyWeight).where(
+            FamilyPolicyWeight.family_id == seeded_family.family_id,
+            FamilyPolicyWeight.target_kind.in_(["emotion_pattern", "failed_adjustment"]),
+        )
+    ).all()
+    assert any(item.target_kind == "emotion_pattern" for item in policy_weights)
+    assert any(item.target_kind == "failed_adjustment" for item in policy_weights)
+
+
+def test_training_dashboard_pauses_when_family_is_overloaded(db_session: Session, seeded_family) -> None:
+    profile = db_session.scalar(select(ChildProfile).where(ChildProfile.family_id == seeded_family.family_id))
+    assert profile is not None
+    profile.school_context = {
+        "child_name": "小雨",
+        "child_age": 8,
+        "learning_needs": ["表达需求", "情绪调节"],
+        "emotion_patterns": ["崩溃前会躲起来"],
+        "behavior_patterns": ["过渡时容易升级"],
+        "school_notes": "这两天整体很紧绷。",
+    }
+    recent_checkins = db_session.scalars(
+        select(DailyCheckin)
+        .where(DailyCheckin.family_id == seeded_family.family_id)
+        .order_by(DailyCheckin.date.desc())
+    ).all()
+    assert len(recent_checkins) >= 2
+    recent_checkins[0].details_json = {
+        "child_mood_state": "anxious",
+        "negative_emotions": ["崩溃前兆"],
+        "today_activities": ["学校活动", "关屏"],
+        "today_learning_tasks": ["作业训练"],
+        "physical_discomforts": [],
+    }
+    db_session.commit()
+
+    with TestClient(app) as client:
+        headers = _auth_headers(client)
+        response = client.post(
+            "/api/training/generate",
+            json={"family_id": seeded_family.family_id, "extra_context": "我已经快撑不住了，今天只想先稳住。"},
+            headers=headers,
+        )
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["summary"]["readiness_status"] == "pause"
+        assert "暂停" in payload["summary"]["recommended_action"] or "低负荷" in payload["summary"]["recommended_action"]
+        assert payload["today_tasks"] == []
 
 
 def test_training_domain_detail_recovers_when_reason_list_has_only_one_item(db_session: Session, seeded_family) -> None:

@@ -18,6 +18,7 @@ from app.schemas.domain import (
     MicroRespiteGenerateRequest,
     MicroRespiteGenerateResponse,
 )
+from app.services.policy_learning import PolicyLearningService
 
 router = APIRouter(prefix="/respite", tags=["respite"])
 
@@ -132,6 +133,14 @@ def submit_micro_respite_feedback(
     db.add(review)
     db.flush()
 
+    PolicyLearningService().record_review(
+        db=db,
+        family_id=payload.family_id,
+        outcome_score=score,
+        card_ids=payload.source_card_ids,
+        scenario="respite",
+        response_action=payload.option_id,
+    )
     updated_weights = CoachAgent().update_preference_weights(db=db, family_id=payload.family_id)
     db.commit()
 

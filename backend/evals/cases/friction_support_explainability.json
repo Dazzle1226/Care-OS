@@ -1,0 +1,56 @@
+{
+  "id": "friction_support_explainability",
+  "title": "高摩擦支持同时满足可解释性、多角色输出和引用完整",
+  "setup": {
+    "profile_patch": {
+      "school_context": {
+        "child_name": "小雨",
+        "school_notes": "放学回家切换困难，老师希望家庭与学校保持同一套短句。"
+      }
+    }
+  },
+  "steps": [
+    {
+      "name": "generate_friction_support",
+      "method": "POST",
+      "path": "/api/scripts/friction-support",
+      "body": {
+        "family_id": "{{family_id}}",
+        "scenario": "transition",
+        "child_state": "sensory_overload",
+        "sensory_overload_level": "heavy",
+        "transition_difficulty": 9,
+        "meltdown_count": 2,
+        "caregiver_stress": 8,
+        "caregiver_fatigue": 7,
+        "caregiver_sleep_quality": 4,
+        "support_available": "one",
+        "confidence_to_follow_plan": 4,
+        "env_changes": ["学校临时活动", "刚到家"],
+        "free_text": "孩子回家后不愿换衣服，声音一大就开始尖叫。",
+        "high_risk_selected": false
+      },
+      "expect": {
+        "status": 200,
+        "json_paths": {
+          "blocked": false,
+          "support.action_plan.__len__": 3,
+          "support.handoff_messages.__len__": 3
+        },
+        "min_lengths": {
+          "support.why_this_plan": 2,
+          "support.excluded_actions": 2,
+          "support.source_card_ids": 1
+        },
+        "contains_targets": {
+          "support.handoff_messages": ["family", "supporter", "teacher"]
+        },
+        "non_empty": [
+          "support.school_message",
+          "support.feedback_prompt",
+          "support.action_plan.0.why_it_fits"
+        ]
+      }
+    }
+  ]
+}

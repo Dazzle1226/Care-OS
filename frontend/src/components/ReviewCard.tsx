@@ -248,11 +248,17 @@ function StrategyList({
               <h4>{item.title}</h4>
               <span className="status-pill">{recommendationLabel[item.recommendation]}</span>
             </div>
+            <p>{item.summary}</p>
             <div className="chip-row">
               <span className="info-chip">{item.evidence_count} 次</span>
               <span className="info-chip">{item.success_rate}%</span>
               <span className="info-chip">{applicabilityLabel[item.applicability]}</span>
             </div>
+            <ul className="list compact-list">
+              {item.why_ranked.map((reason) => (
+                <li key={reason}>{reason}</li>
+              ))}
+            </ul>
             <FeedbackButtons
               activeValue={findFeedback(states, 'strategy', item.target_key)}
               saving={saving}
@@ -307,8 +313,9 @@ function ActionList({
               <h4>{item.title}</h4>
               <span className="status-pill">{recommendationLabel[item.recommendation]}</span>
             </div>
+            <p>{item.summary}</p>
             <div className="chip-row">
-              <span className="info-chip soft">{item.summary}</span>
+              <span className="info-chip soft">{item.rationale}</span>
             </div>
             <FeedbackButtons
               activeValue={findFeedback(states, 'action', item.target_key)}
@@ -337,7 +344,7 @@ function ActionList({
 
 function TrendCards({ items }: { items: MonthlyTrendItem[] }) {
   return (
-    <div className="trend-card-grid">
+    <div className="trend-card-grid balanced-card-grid cols-2">
       {items.map((item) => (
         <div className="trend-card" key={item.title}>
           <div className="trend-card-top">
@@ -362,7 +369,7 @@ function TrendCards({ items }: { items: MonthlyTrendItem[] }) {
 
 function TrendDeltaCards({ items }: { items: TrendDeltaItem[] }) {
   return (
-    <div className="trend-card-grid">
+    <div className="trend-card-grid balanced-card-grid cols-2">
       {items.map((item) => (
         <div className="trend-card" key={item.title}>
           <div className="trend-card-top">
@@ -454,7 +461,7 @@ function WeeklyReviewView({
         </DashboardMetric>
       </div>
 
-      <div className="review-priority-grid compact">
+      <div className="review-priority-grid compact balanced-card-grid cols-2">
         <div className="review-priority-card accent">
           <span className="label">结论</span>
           <h4>{report.task_summary}</h4>
@@ -463,6 +470,31 @@ function WeeklyReviewView({
           <span className="label">下周只做一件</span>
           <h4>{report.one_thing_next_week}</h4>
         </div>
+      </div>
+
+      <div className="review-report-grid review-report-grid-single">
+        <div className="report-section">
+          <div className="report-section-head">
+            <div>
+              <h4>本周最有效方法</h4>
+              <p className="muted">{report.strategy_ranking_summary}</p>
+            </div>
+            <span className="status-pill">带依据排序</span>
+          </div>
+          <StrategyList
+            items={report.strategy_top3}
+            states={report.feedback_states}
+            periodType="weekly"
+            periodStart={report.week_start}
+            feedbackSavingKey={feedbackSavingKey}
+            onFeedback={onFeedback}
+            positiveLabel="继续保留"
+            negativeLabel="本周无效"
+            positiveValue="effective"
+            negativeValue="not_effective"
+          />
+        </div>
+
       </div>
 
       <details className="review-secondary-panel">
@@ -527,10 +559,54 @@ function MonthlyReviewView({
         </DashboardMetric>
       </div>
 
-      <div className="review-priority-grid compact">
+      <div className="review-priority-grid compact balanced-card-grid cols-2">
         <div className="review-priority-card accent">
           <span className="label">月结论</span>
           <h4>{report.overview_summary}</h4>
+        </div>
+      </div>
+
+      <div className="review-report-grid">
+        <div className="report-section">
+          <div className="report-section-head">
+            <div>
+              <h4>本月最有效方法</h4>
+              <p className="muted">{report.strategy_ranking_summary}</p>
+            </div>
+            <span className="status-pill">长期沉淀</span>
+          </div>
+          <StrategyList
+            items={report.successful_methods}
+            states={report.feedback_states}
+            periodType="monthly"
+            periodStart={report.month_start}
+            feedbackSavingKey={feedbackSavingKey}
+            onFeedback={onFeedback}
+            positiveLabel="继续保留"
+            negativeLabel="需要调整"
+            positiveValue="effective"
+            negativeValue="adjust"
+          />
+        </div>
+
+        <div className="report-section">
+          <div className="report-section-head">
+            <div>
+              <h4>下月优先动作</h4>
+              <p className="muted">
+                有效 {report.feedback_summary.effective_count} 条 · 继续 {report.feedback_summary.continue_count} 条
+              </p>
+            </div>
+            <span className="status-pill">先做最值钱的</span>
+          </div>
+          <ActionList
+            items={report.next_month_plan}
+            states={report.feedback_states}
+            periodType="monthly"
+            periodStart={report.month_start}
+            feedbackSavingKey={feedbackSavingKey}
+            onFeedback={onFeedback}
+          />
         </div>
       </div>
 

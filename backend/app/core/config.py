@@ -10,20 +10,31 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    app_name: str = "Care OS Pro Max API"
+    app_name: str = "赫兹 Hertz API"
     api_prefix: str = "/api"
     jwt_secret: str = Field(default="care-os-demo-secret-change-me", alias="CARE_OS_JWT_SECRET")
     jwt_expire_minutes: int = 60 * 24 * 7
 
     base_dir: Path = Path(__file__).resolve().parents[2]
     database_url: str | None = Field(default=None, alias="CARE_OS_DATABASE_URL")
+    database_backend: str = Field(default="sqlite", alias="CARE_OS_DATABASE_BACKEND")
 
-    embedding_provider: str = Field(default="hash", alias="CARE_OS_EMBEDDING_PROVIDER")
+    embedding_provider: str = Field(default="auto", alias="CARE_OS_EMBEDDING_PROVIDER")
+    embedding_fallback_provider: str = Field(default="hash", alias="CARE_OS_EMBEDDING_FALLBACK_PROVIDER")
     embedding_dim: int = 256
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
     openai_base_url: str = Field(default="https://api.openai.com/v1", alias="OPENAI_BASE_URL")
     openai_embedding_model: str = "text-embedding-3-small"
     openai_chat_model: str = "gpt-4o-mini"
+    openai_enable_thinking: bool | None = Field(default=None, alias="OPENAI_ENABLE_THINKING")
+    openai_vision_model: str = Field(default="Qwen/Qwen2.5-VL-72B-Instruct", alias="OPENAI_VISION_MODEL")
+    openai_audio_model: str = Field(default="Qwen/Qwen2.5-Omni-7B", alias="OPENAI_AUDIO_MODEL")
+    multimodal_auto_include_confidence: float = Field(default=0.65, alias="CARE_OS_MULTIMODAL_AUTO_INCLUDE_CONFIDENCE")
+    provider_timeout_seconds: int = Field(default=20, alias="CARE_OS_PROVIDER_TIMEOUT_SECONDS")
+    generation_primary_provider: str = Field(default="openai_compatible", alias="CARE_OS_GENERATION_PRIMARY_PROVIDER")
+    generation_secondary_provider: str = Field(default="rule_fallback", alias="CARE_OS_GENERATION_SECONDARY_PROVIDER")
+    rerank_provider: str = Field(default="heuristic", alias="CARE_OS_RERANK_PROVIDER")
+    corpus_version: str = Field(default="v2", alias="CARE_OS_CORPUS_VERSION")
 
     force_rule_fallback: bool = Field(default=False, alias="CARE_OS_FORCE_RULE_FALLBACK")
 
@@ -31,7 +42,9 @@ class Settings(BaseSettings):
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:4173",
+        "http://127.0.0.1:4173",
     ]
+    cors_origin_regex: str = r"^https?://(?:localhost|127\.0\.0\.1|0\.0\.0\.0|(?:\d{1,3}\.){3}\d{1,3}|[a-zA-Z0-9-]+\.local)(?::\d+)?$"
 
     high_risk_keywords: list[str] = [
         "自伤",
@@ -53,6 +66,8 @@ class Settings(BaseSettings):
     def resolved_database_url(self) -> str:
         if self.database_url:
             return self.database_url
+        if self.database_backend.lower() == "postgres":
+            return "postgresql+psycopg://careos:careos@localhost:5432/care_os"
         db_path = self.base_dir / "data" / "care_os.db"
         db_path.parent.mkdir(parents=True, exist_ok=True)
         return f"sqlite:///{db_path.as_posix()}"

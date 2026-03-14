@@ -1,0 +1,22 @@
+{
+  "id": "weekly_report_reasoning",
+  "title": "周报能输出策略排序依据与下周动作",
+  "setup": {
+    "weekly_report_fixture": true
+  },
+  "steps": [
+    {
+      "name": "get_weekly_report",
+      "method": "GET",
+      "path": "/api/report/weekly/{{family_id}}?week_start={{week_start}}",
+      "expect": {
+        "status": 200,
+        "min_lengths": {
+          "strategy_top3": 2,
+          "strategy_top3.0.why_ranked": 2
+        },
+        "non_empty": ["strategy_ranking_summary", "next_actions.0.title", "one_thing_next_week"]
+      }
+    }
+  ]
+}

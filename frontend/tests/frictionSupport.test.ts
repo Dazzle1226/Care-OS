@@ -3,8 +3,10 @@ import test from 'node:test';
 
 import {
   buildFrictionActionContext,
+  CUSTOM_FRICTION_SCENARIO_VALUE,
   hasSchoolCollaborationMessage,
-  normalizeFrictionScenario
+  normalizeFrictionScenario,
+  resolveFrictionScenarioSelection
 } from '../src/lib/frictionSupport.ts';
 import type { FrictionSupportGenerateResponse } from '../src/lib/types.ts';
 
@@ -79,6 +81,22 @@ test('normalizeFrictionScenario clamps unknown values to transition', () => {
   assert.equal(normalizeFrictionScenario('outing'), 'outing');
   assert.equal(normalizeFrictionScenario('unknown'), 'transition');
   assert.equal(normalizeFrictionScenario(undefined), 'transition');
+});
+
+test('resolveFrictionScenarioSelection keeps custom mode without overriding the mapped scenario', () => {
+  const selection = resolveFrictionScenarioSelection(CUSTOM_FRICTION_SCENARIO_VALUE);
+
+  assert.equal(selection.scenarioSelection, CUSTOM_FRICTION_SCENARIO_VALUE);
+  assert.equal(selection.scenario, null);
+  assert.equal(selection.shouldResetCustomScenarioName, false);
+});
+
+test('resolveFrictionScenarioSelection normalizes preset values and clears stale custom names', () => {
+  const selection = resolveFrictionScenarioSelection('outing');
+
+  assert.equal(selection.scenarioSelection, 'outing');
+  assert.equal(selection.scenario, 'outing');
+  assert.equal(selection.shouldResetCustomScenarioName, true);
 });
 
 test('buildFrictionActionContext preserves a custom source scenario label', () => {

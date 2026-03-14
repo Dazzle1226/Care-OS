@@ -348,7 +348,8 @@ export function FamilyPage({
   };
 
   return (
-    <div className="grid">
+    <div className="content-page-shell family-page-shell">
+      <div className="grid">
       {showCompletionCta ? (
         <div className="panel completion-banner">
           <div>
@@ -403,7 +404,7 @@ export function FamilyPage({
         </section>
       ) : null}
 
-      <div className="family-key-grid">
+      <div className="family-key-grid balanced-card-grid cols-3">
         <section className="panel detail-card">
           <p className="eyebrow">当前照护焦点</p>
           <h3>{data.snapshot.recommended_focus}</h3>
@@ -446,7 +447,7 @@ export function FamilyPage({
         </section>
       </div>
 
-      <section className="grid family-card-grid">
+      <section className="grid family-card-grid balanced-card-grid cols-2">
         {data.support_cards.map((card) => {
           return (
             <article key={card.card_id} className="panel support-card">
@@ -465,7 +466,7 @@ export function FamilyPage({
                   <span key={item} className="info-chip ok">{item}</span>
                 ))}
               </div>
-              <div className="support-card-sections">
+              <div className="support-card-sections balanced-card-grid cols-2">
                 {card.sections.map((section) => (
                   <section key={`${card.card_id}-${section.key}`} className="support-card-section">
                     <p className="support-card-section-title">{section.title}</p>
@@ -497,7 +498,7 @@ export function FamilyPage({
           <span className="family-details-summary-action">点此展开</span>
         </summary>
 
-        <div className="family-summary-grid">
+        <div className="family-summary-grid balanced-card-grid cols-3">
         <section className="panel detail-card">
           <p className="eyebrow">孩子信息</p>
           <ul className="list">
@@ -543,7 +544,7 @@ export function FamilyPage({
         </section>
         </div>
 
-        <div className="family-summary-grid">
+        <div className="family-summary-grid balanced-card-grid cols-3">
         <section className="panel detail-card">
           <p className="eyebrow">安抚方式</p>
           <ul className="list">
@@ -603,7 +604,8 @@ export function FamilyPage({
         </div>
       </details>
 
-      {error ? <div className="panel error">{error}</div> : null}
+        {error ? <div className="panel error">{error}</div> : null}
+      </div>
     </div>
   );
 }

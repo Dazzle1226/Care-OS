@@ -479,6 +479,184 @@ class PlanActionItem(StrictModel):
     escalate_when: list[str] = Field(min_length=1)
 
 
+class CandidateScore(StrictModel):
+    card_id: str
+    title: str
+    total_score: float
+    semantic_score: float
+    lexical_score: float
+    scenario_match: float
+    profile_fit: float
+    historical_effect: float
+    policy_weight: float = 0
+    execution_cost_bonus: float
+    risk_penalty: float
+    taboo_conflict_penalty: float
+    selected: bool = False
+    why_selected: list[str] = Field(default_factory=list, max_length=3)
+    why_not_selected: list[str] = Field(default_factory=list, max_length=3)
+    selected_chunk_ids: list[str] = Field(default_factory=list, max_length=4)
+    hard_filter_tags: list[str] = Field(default_factory=list, max_length=4)
+    personalization_notes: list[str] = Field(default_factory=list, max_length=3)
+
+
+class RetrievalQueryPlan(StrictModel):
+    intent: Literal["plan", "script", "friction", "report"]
+    scenario: str
+    intensity: str
+    family_id: int
+    profile_facets: list[str] = Field(default_factory=list, max_length=10)
+    recent_context_signals: list[str] = Field(default_factory=list, max_length=10)
+    hard_exclusions: list[str] = Field(default_factory=list, max_length=8)
+    time_window: str = "recent"
+    raw_query_text: str = ""
+
+
+class RetrievalFeatureAttribution(StrictModel):
+    target_id: str
+    target_kind: Literal["card", "chunk", "family_memory"]
+    summary: str
+    contribution: float
+
+
+class RetrievalTraceCandidateRead(StrictModel):
+    candidate_id: int
+    source_type: str
+    card_id: str | None = None
+    chunk_id: int | None = None
+    title: str
+    total_score: float
+    dense_score: float
+    sparse_score: float
+    profile_score: float
+    history_score: float
+    policy_score: float
+    safety_penalty: float
+    selected: bool = False
+    filter_reason: str = ""
+    feature_attribution: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class RetrievalSelectedSource(StrictModel):
+    source_id: str
+    source_type: str
+    title: str
+    scope: Literal["global", "segment", "family"] = "global"
+
+
+class RetrievalEvidenceBundle(StrictModel):
+    selected_card_ids: list[str] = Field(default_factory=list, max_length=3)
+    selected_evidence_unit_ids: list[str] = Field(default_factory=list, max_length=8)
+    selected_chunk_ids: list[str] = Field(default_factory=list, max_length=12)
+    candidate_scores: list[CandidateScore] = Field(default_factory=list)
+    selection_reasons: list[str] = Field(default_factory=list, max_length=4)
+    rejected_reasons: list[str] = Field(default_factory=list, max_length=4)
+    counter_evidence: list[str] = Field(default_factory=list, max_length=4)
+    coverage_scores: dict[str, float] = Field(default_factory=dict)
+    confidence_score: float = Field(ge=0, le=1)
+    insufficient_evidence: bool = False
+    missing_dimensions: list[str] = Field(default_factory=list, max_length=4)
+    ranking_summary: str
+    query_plan: RetrievalQueryPlan | None = None
+    selected_sources: list[RetrievalSelectedSource] = Field(default_factory=list)
+    feature_attribution: list[RetrievalFeatureAttribution] = Field(default_factory=list)
+    personalization_applied: list[str] = Field(default_factory=list, max_length=6)
+    hard_filtered_reasons: list[str] = Field(default_factory=list, max_length=6)
+    coverage_gaps: list[str] = Field(default_factory=list, max_length=6)
+    knowledge_versions: list[str] = Field(default_factory=list, max_length=6)
+    retrieval_latency_ms: int = Field(default=0, ge=0)
+    retrieval_run_id: int | None = None
+
+
+class CriticReview(StrictModel):
+    critic: Literal["safety", "evidence", "plan"]
+    decision: Literal["pass", "revise", "clarify", "needs_clarification", "fallback_ok", "block"] = "pass"
+    blocked: bool = False
+    issue_type: Literal["missing_evidence", "insufficient_coverage", "citation_mismatch", "safety", "plan_quality"] | None = None
+    reasons: list[str] = Field(default_factory=list, max_length=5)
+    summary: str
+
+
+class EvidenceGapGuidance(StrictModel):
+    known_facts: list[str] = Field(default_factory=list, min_length=1, max_length=3)
+    uncertain_areas: list[str] = Field(default_factory=list, min_length=1, max_length=4)
+    provisional_recommendation: str = Field(min_length=1)
+    recommendation_conditions: list[str] = Field(default_factory=list, min_length=2, max_length=3)
+    info_to_collect: list[str] = Field(default_factory=list, min_length=2, max_length=4)
+    safe_next_steps: list[str] = Field(default_factory=list, min_length=2, max_length=3)
+
+
+class ContextSignalRead(StrictModel):
+    signal_key: str
+    signal_label: str
+    signal_value: str
+    confidence: float = Field(ge=0, le=1)
+
+
+class MultimodalIngestionRequest(StrictModel):
+    family_id: int
+    source_type: Literal["document", "audio"]
+    content_name: str = Field(default="", max_length=160)
+    raw_text: str = Field(min_length=1, max_length=4000)
+
+
+class MultimodalIngestionResponse(StrictModel):
+    ingestion_id: int
+    family_id: int
+    source_type: Literal["document", "audio"]
+    content_name: str
+    raw_excerpt: str
+    normalized_summary: str
+    context_signals: list[ContextSignalRead] = Field(default_factory=list)
+    confidence: float = Field(ge=0, le=1)
+    manual_review_required: bool = False
+    created_at: datetime_type
+
+
+class ContextFrameRead(StrictModel):
+    summary_text: str = ""
+    signal_keys: list[str] = Field(default_factory=list, max_length=10)
+    signal_labels: list[str] = Field(default_factory=list, max_length=10)
+    ingestion_ids: list[int] = Field(default_factory=list, max_length=8)
+
+
+class EvidenceUnitRead(StrictModel):
+    unit_id: str
+    card_id: str
+    unit_kind: Literal["step", "script", "dont", "escalate_when", "fit_condition"]
+    text: str
+    dimensions: list[str] = Field(default_factory=list, max_length=4)
+
+
+class DecisionGraphStageRun(StrictModel):
+    stage: Literal[
+        "context_ingestion",
+        "context_fusion",
+        "goal_interpretation",
+        "signal_eval",
+        "emotion_eval",
+        "evidence_recall",
+        "task_decomposition",
+        "candidate_generation",
+        "candidate_simulation",
+        "safety_critic",
+        "evidence_critic",
+        "critic_reflection",
+        "executor",
+        "replanner",
+        "coordination",
+        "policy_adjust_hint",
+        "memory_learning",
+        "finalizer",
+    ]
+    status: Literal["success", "blocked", "fallback", "skipped"]
+    input_ref: str = ""
+    output: dict[str, Any] = Field(default_factory=dict)
+    latency_ms: int = Field(ge=0)
+    fallback_used: bool = False
+    retry_count: int = Field(default=0, ge=0)
+
+
 class Plan48hResponse(StrictModel):
     today_cut_list: list[str] = Field(min_length=1, max_length=3)
     priority_scenarios: list[str] = Field(min_length=1, max_length=2)
@@ -489,6 +667,7 @@ class Plan48hResponse(StrictModel):
     action_steps: list[PlanActionItem] = Field(min_length=1)
     citations: list[str] = Field(min_length=1)
     safety_flags: list[str] = Field(default_factory=list)
+    evidence_gap_guidance: EvidenceGapGuidance | None = None
 
 
 class Plan48hGenerateRequest(StrictModel):
@@ -498,6 +677,7 @@ class Plan48hGenerateRequest(StrictModel):
     manual_trigger: bool = False
     high_risk_selected: bool = False
     free_text: str = ""
+    include_debug: bool = False
 
 
 class Plan48hGenerateResponse(StrictModel):
@@ -506,6 +686,9 @@ class Plan48hGenerateResponse(StrictModel):
     risk: SignalOutput | None = None
     plan: Plan48hResponse | None = None
     safety_block: "SafetyBlockResponse | None" = None
+    evidence_bundle: RetrievalEvidenceBundle | None = None
+    decision_trace_id: int | None = None
+    decision_summary: str | None = None
 
 
 class ScriptGenerateRequest(StrictModel):
@@ -515,6 +698,7 @@ class ScriptGenerateRequest(StrictModel):
     resources: dict[str, Any] = Field(default_factory=dict)
     high_risk_selected: bool = False
     free_text: str = ""
+    include_debug: bool = False
 
 
 class ScriptResponse(StrictModel):
@@ -523,12 +707,16 @@ class ScriptResponse(StrictModel):
     donts: list[str] = Field(min_length=2)
     exit_plan: list[str] = Field(min_length=1)
     citations: list[str] = Field(min_length=1)
+    evidence_gap_guidance: EvidenceGapGuidance | None = None
 
 
 class ScriptGenerateResponse(StrictModel):
     blocked: bool = False
     script: ScriptResponse | None = None
     safety_block: "SafetyBlockResponse | None" = None
+    evidence_bundle: RetrievalEvidenceBundle | None = None
+    decision_trace_id: int | None = None
+    decision_summary: str | None = None
 
 
 class FrictionSupportStep(StrictModel):
@@ -567,6 +755,8 @@ class FrictionSupportPlan(StrictModel):
     situation_summary: str = Field(min_length=1)
     child_signals: list[str] = Field(min_length=2, max_length=3)
     caregiver_signals: list[str] = Field(min_length=2, max_length=3)
+    why_this_plan: list[str] = Field(min_length=2, max_length=4)
+    excluded_actions: list[str] = Field(min_length=2, max_length=4)
     action_plan: list[FrictionSupportStep] = Field(min_length=3, max_length=3)
     donts: list[str] = Field(min_length=3, max_length=4)
     say_this: list[str] = Field(min_length=2, max_length=3)
@@ -577,9 +767,11 @@ class FrictionSupportPlan(StrictModel):
     respite_suggestion: FrictionRespiteSuggestion
     personalized_strategies: list[str] = Field(min_length=2, max_length=4)
     school_message: str = Field(min_length=1)
+    handoff_messages: list[PlanMessage] = Field(min_length=3, max_length=3)
     feedback_prompt: str = Field(min_length=1)
     citations: list[str] = Field(min_length=1)
     source_card_ids: list[str] = Field(min_length=1, max_length=3)
+    evidence_gap_guidance: EvidenceGapGuidance | None = None
 
 
 class FrictionSupportGenerateRequest(StrictModel):
@@ -600,6 +792,7 @@ class FrictionSupportGenerateRequest(StrictModel):
     free_text: str = Field(default="", max_length=500)
     low_stim_mode_requested: bool = False
     high_risk_selected: bool = False
+    include_debug: bool = False
 
     @model_validator(mode="after")
     def apply_quick_preset(self) -> "FrictionSupportGenerateRequest":
@@ -621,6 +814,331 @@ class FrictionSupportGenerateResponse(StrictModel):
     risk: SignalOutput | None = None
     support: FrictionSupportPlan | None = None
     safety_block: "SafetyBlockResponse | None" = None
+    evidence_bundle: RetrievalEvidenceBundle | None = None
+    decision_trace_id: int | None = None
+    decision_summary: str | None = None
+
+
+class EmotionAssessment(StrictModel):
+    child_emotion: Literal["calm", "fragile", "escalating", "meltdown_risk"]
+    caregiver_emotion: Literal["calm", "strained", "anxious", "overloaded"]
+    child_overload_level: Literal["low", "medium", "high"]
+    caregiver_overload_level: Literal["low", "medium", "high"]
+    confidence_drift: Literal["stable", "dropping", "critical"]
+    recommended_adjustments: list[str] = Field(default_factory=list, max_length=4)
+    confidence: float = Field(ge=0, le=1)
+    reasoning: list[str] = Field(default_factory=list, max_length=4)
+
+
+class AgentProposal(StrictModel):
+    proposal_id: str = Field(min_length=1, max_length=64)
+    agent_name: str = Field(min_length=1, max_length=64)
+    proposal_kind: Literal["continue", "lighter", "handoff", "block"]
+    payload: dict[str, Any] = Field(default_factory=dict)
+    confidence: float = Field(ge=0, le=1)
+    priority: float = Field(ge=0)
+    rationale: str = Field(min_length=1)
+    depends_on: list[str] = Field(default_factory=list, max_length=4)
+
+
+class CoordinationDecision(StrictModel):
+    selected_proposal_id: str = Field(min_length=1, max_length=64)
+    alternative_proposal_ids: list[str] = Field(default_factory=list, max_length=4)
+    decision_reason: str = Field(min_length=1)
+    weight_summary: list[str] = Field(default_factory=list, max_length=5)
+    replan_triggers: list[str] = Field(default_factory=list, max_length=5)
+    active_mode: Literal["continue", "lighter", "handoff", "blocked"] = "continue"
+    now_step: str = Field(min_length=1)
+    now_script: str = Field(min_length=1)
+    next_if_not_working: str = Field(min_length=1)
+    summary: str = Field(min_length=1)
+
+
+class GoalSpec(StrictModel):
+    goal_id: str = Field(min_length=1, max_length=64)
+    title: str = Field(min_length=1, max_length=80)
+    success_definition: str = Field(min_length=1, max_length=160)
+    constraints: list[str] = Field(default_factory=list, max_length=6)
+
+
+class TaskNode(StrictModel):
+    task_id: str = Field(min_length=1, max_length=64)
+    parent_task_id: str | None = Field(default=None, max_length=64)
+    goal: str = Field(min_length=1, max_length=160)
+    kind: Literal["stabilize", "co_regulate", "transition", "handoff", "exit", "observe"]
+    priority: float = Field(ge=0)
+    status: Literal["pending", "active", "completed", "failed", "dropped"] = "pending"
+    preconditions: list[str] = Field(default_factory=list, max_length=4)
+    success_signals: list[str] = Field(default_factory=list, max_length=4)
+    failure_signals: list[str] = Field(default_factory=list, max_length=4)
+    fallback_task_ids: list[str] = Field(default_factory=list, max_length=3)
+    instructions: list[str] = Field(default_factory=list, min_length=1, max_length=3)
+    say_this: list[str] = Field(default_factory=list, min_length=1, max_length=2)
+    citations: list[str] = Field(default_factory=list, min_length=1, max_length=3)
+    why_now: str = Field(min_length=1, max_length=160)
+    depth: int = Field(default=0, ge=0, le=3)
+
+
+class ReplanTrigger(StrictModel):
+    trigger_type: Literal[
+        "session_start",
+        "no_improvement",
+        "caregiver_overloaded",
+        "child_escalating",
+        "support_arrived",
+        "user_requests_lighter",
+        "user_requests_handoff",
+        "new_context_ingested",
+    ]
+    source_event: str = Field(min_length=1, max_length=64)
+    summary: str = Field(min_length=1, max_length=200)
+
+
+class ExecutionState(StrictModel):
+    active_task_id: str | None = Field(default=None, max_length=64)
+    completed_task_ids: list[str] = Field(default_factory=list, max_length=8)
+    failed_task_ids: list[str] = Field(default_factory=list, max_length=8)
+    dropped_task_ids: list[str] = Field(default_factory=list, max_length=8)
+    latest_event: ReplanTrigger | None = None
+    active_mode: Literal["continue", "lighter", "handoff", "blocked"] = "continue"
+    latest_critic_verdicts: list[str] = Field(default_factory=list, max_length=4)
+
+
+class PlanRevisionDiff(StrictModel):
+    trigger: ReplanTrigger
+    affected_task_ids: list[str] = Field(default_factory=list, max_length=6)
+    dropped_task_ids: list[str] = Field(default_factory=list, max_length=6)
+    added_task_ids: list[str] = Field(default_factory=list, max_length=6)
+    active_task_before: str | None = Field(default=None, max_length=64)
+    active_task_after: str | None = Field(default=None, max_length=64)
+    summary: str = Field(min_length=1, max_length=200)
+
+
+class PlanRevision(StrictModel):
+    revision_no: int = Field(ge=1)
+    parent_revision_no: int | None = Field(default=None, ge=1)
+    goal: GoalSpec
+    task_tree: list[TaskNode] = Field(default_factory=list, min_length=1, max_length=12)
+    execution_state: ExecutionState
+    critic_verdicts: list[CriticReview] = Field(default_factory=list, max_length=4)
+    revision_diff: PlanRevisionDiff
+
+
+class DecisionStateRead(StrictModel):
+    session_id: int
+    family_id: int
+    chain: Literal["friction_support", "training_support"]
+    state_version: int = Field(ge=1)
+    latest_inputs: dict[str, Any] = Field(default_factory=dict)
+    context_signals: list[ContextSignalRead] = Field(default_factory=list, max_length=12)
+    risk_assessment: SignalOutput | None = None
+    emotion_assessment: EmotionAssessment | None = None
+    retrieval_bundle: RetrievalEvidenceBundle | None = None
+    coordination: CoordinationDecision | None = None
+    active_plan_summary: dict[str, Any] = Field(default_factory=dict)
+    used_memory_signals: list[str] = Field(default_factory=list, max_length=6)
+    adaptation_history: list[str] = Field(default_factory=list, max_length=8)
+    trace_summary: list[DecisionGraphStageRun] = Field(default_factory=list)
+
+
+class AdaptiveSessionRead(StrictModel):
+    session_id: int
+    incident_id: int | None = None
+    family_id: int
+    chain: Literal["friction_support", "training_support"]
+    status: Literal["active", "blocked", "closed"]
+    current_state_version: int = Field(ge=1)
+    active_plan_summary: dict[str, Any] = Field(default_factory=dict)
+    next_check_in_hint: str = Field(min_length=1)
+    last_trace_id: int | None = None
+    created_at: datetime_type
+    updated_at: datetime_type
+
+
+class SessionEventRead(StrictModel):
+    event_id: int
+    source_type: Literal["text", "audio", "document", "system", "user_action"]
+    event_kind: Literal[
+        "text_update",
+        "audio_update",
+        "status_check",
+        "request_lighter",
+        "request_handoff",
+        "no_improvement",
+        "caregiver_overloaded",
+        "child_escalating",
+        "support_arrived",
+        "new_context_ingested",
+        "confirm",
+        "close",
+    ]
+    raw_text: str
+    ingestion_id: int | None = None
+    replanned: bool = False
+    created_at: datetime_type
+
+
+class V3FrictionSessionStartRequest(FrictionSupportGenerateRequest):
+    ingestion_ids: list[int] = Field(default_factory=list, max_length=4)
+
+
+class V3FrictionSessionEventRequest(StrictModel):
+    source_type: Literal["text", "audio", "document", "user_action"] = "text"
+    event_kind: Literal[
+        "text_update",
+        "audio_update",
+        "status_check",
+        "request_lighter",
+        "request_handoff",
+        "no_improvement",
+        "caregiver_overloaded",
+        "child_escalating",
+        "support_arrived",
+        "new_context_ingested",
+    ]
+    raw_text: str = Field(default="", max_length=500)
+    ingestion_id: int | None = None
+
+
+class V3FrictionSessionConfirmRequest(StrictModel):
+    action: Literal["continue", "lighter", "handoff", "reject"]
+    note: str = Field(default="", max_length=300)
+
+
+class V3FrictionSessionCloseRequest(StrictModel):
+    effectiveness: Literal["helpful", "somewhat", "not_helpful"]
+    child_state_after: Literal["settled", "partly_settled", "still_escalating"]
+    caregiver_state_after: Literal["calmer", "same", "more_overloaded"]
+    notes: str = Field(default="", max_length=500)
+
+
+class V3FrictionSessionStartResponse(StrictModel):
+    blocked: bool = False
+    session: AdaptiveSessionRead | None = None
+    decision_state: DecisionStateRead | None = None
+    risk: SignalOutput | None = None
+    emotion: EmotionAssessment | None = None
+    support: FrictionSupportPlan | None = None
+    coordination: CoordinationDecision | None = None
+    safety_block: "SafetyBlockResponse | None" = None
+    evidence_bundle: RetrievalEvidenceBundle | None = None
+    trace_id: int | None = None
+    trace_summary: list[DecisionGraphStageRun] = Field(default_factory=list)
+    plan_revision: PlanRevision | None = None
+    active_task: TaskNode | None = None
+    task_tree: list[TaskNode] = Field(default_factory=list)
+    execution_state: ExecutionState | None = None
+    replan_reason: str | None = None
+    critic_verdicts: list[CriticReview] = Field(default_factory=list)
+    revision_diff: PlanRevisionDiff | None = None
+
+
+class V3FrictionSessionEventResponse(StrictModel):
+    session: AdaptiveSessionRead
+    event: SessionEventRead
+    replanned: bool = False
+    changed_fields: list[str] = Field(default_factory=list, max_length=6)
+    decision_state: DecisionStateRead | None = None
+    risk: SignalOutput | None = None
+    emotion: EmotionAssessment | None = None
+    support: FrictionSupportPlan | None = None
+    coordination: CoordinationDecision | None = None
+    evidence_bundle: RetrievalEvidenceBundle | None = None
+    trace_id: int | None = None
+    trace_summary: list[DecisionGraphStageRun] = Field(default_factory=list)
+    plan_revision: PlanRevision | None = None
+    active_task: TaskNode | None = None
+    task_tree: list[TaskNode] = Field(default_factory=list)
+    execution_state: ExecutionState | None = None
+    replan_reason: str | None = None
+    critic_verdicts: list[CriticReview] = Field(default_factory=list)
+    revision_diff: PlanRevisionDiff | None = None
+
+
+class V3FrictionSessionConfirmResponse(StrictModel):
+    session: AdaptiveSessionRead
+    decision_state: DecisionStateRead | None = None
+    coordination: CoordinationDecision
+    support: FrictionSupportPlan
+    trace_id: int | None = None
+    trace_summary: list[DecisionGraphStageRun] = Field(default_factory=list)
+    plan_revision: PlanRevision | None = None
+    active_task: TaskNode | None = None
+    task_tree: list[TaskNode] = Field(default_factory=list)
+    execution_state: ExecutionState | None = None
+    replan_reason: str | None = None
+    critic_verdicts: list[CriticReview] = Field(default_factory=list)
+    revision_diff: PlanRevisionDiff | None = None
+
+
+class V3FrictionSessionCloseResponse(StrictModel):
+    session: AdaptiveSessionRead
+    decision_state: DecisionStateRead | None = None
+    learning_summary: list[str] = Field(default_factory=list, max_length=5)
+    updated_weights: dict[str, float] = Field(default_factory=dict)
+
+
+class V3FrictionSessionTraceResponse(StrictModel):
+    session: AdaptiveSessionRead
+    decision_state: DecisionStateRead | None = None
+    trace: DecisionTraceRead
+    events: list[SessionEventRead] = Field(default_factory=list)
+
+
+class V3TrainingSessionStartRequest(StrictModel):
+    family_id: int
+    extra_context: str = Field(default="", max_length=500)
+    force_regenerate: bool = False
+    ingestion_ids: list[int] = Field(default_factory=list, max_length=8)
+
+
+class V3TrainingSessionEventRequest(StrictModel):
+    source_type: Literal["text", "audio", "document", "user_action"] = "text"
+    event_kind: Literal[
+        "text_update",
+        "audio_update",
+        "status_check",
+        "request_lighter",
+        "no_improvement",
+        "caregiver_overloaded",
+        "new_context_ingested",
+    ]
+    raw_text: str = Field(default="", max_length=500)
+    ingestion_id: int | None = None
+
+
+class V3TrainingSessionCloseRequest(StrictModel):
+    effectiveness: Literal["helpful", "somewhat", "not_helpful"]
+    notes: str = Field(default="", max_length=500)
+
+
+class V3TrainingSessionStartResponse(StrictModel):
+    session: AdaptiveSessionRead
+    decision_state: DecisionStateRead
+    dashboard: TrainingDashboardResponse
+    coordination: CoordinationDecision
+    trace_id: int | None = None
+    trace_summary: list[DecisionGraphStageRun] = Field(default_factory=list)
+
+
+class V3TrainingSessionEventResponse(StrictModel):
+    session: AdaptiveSessionRead
+    event: SessionEventRead
+    replanned: bool = False
+    changed_fields: list[str] = Field(default_factory=list, max_length=6)
+    decision_state: DecisionStateRead
+    dashboard: TrainingDashboardResponse
+    coordination: CoordinationDecision
+    trace_id: int | None = None
+    trace_summary: list[DecisionGraphStageRun] = Field(default_factory=list)
+
+
+class V3TrainingSessionCloseResponse(StrictModel):
+    session: AdaptiveSessionRead
+    decision_state: DecisionStateRead
+    dashboard: TrainingDashboardResponse
+    learning_summary: list[str] = Field(default_factory=list, max_length=5)
+    updated_weights: dict[str, float] = Field(default_factory=dict)
 
 
 class SafetyBlockResponse(StrictModel):
@@ -756,6 +1274,7 @@ class TrainingPriorityDomainCard(StrictModel):
     has_today_task: bool
     current_status: str = Field(min_length=1, max_length=180)
     improvement_value: str = Field(min_length=1, max_length=180)
+    coordination_hint: str = Field(default="", max_length=180)
 
 
 class DailyTrainingTaskRead(StrictModel):
@@ -773,6 +1292,8 @@ class DailyTrainingTaskRead(StrictModel):
     materials: list[str] = Field(default_factory=list, max_length=5)
     fallback_plan: str = Field(min_length=1, max_length=180)
     coaching_tip: str = Field(min_length=1, max_length=180)
+    coordination_mode: Literal["ready", "lighter", "pause"] = "ready"
+    why_today: str = Field(default="", max_length=180)
     status: TrainingTaskStatus
     reminder_status: TrainingReminderStatus
     reminder_at: datetime_type | None = None
@@ -818,6 +1339,9 @@ class TrainingDashboardSummary(StrictModel):
     priority_domain_count: int = Field(ge=0, le=3)
     streak_days: int = Field(ge=0)
     current_load_level: TrainingLoadLevel
+    readiness_status: Literal["ready", "lighter", "pause"] = "ready"
+    readiness_reason: str = Field(min_length=1, max_length=240)
+    recommended_action: str = Field(min_length=1, max_length=180)
     summary_text: str = Field(min_length=1, max_length=240)
 
 
@@ -1091,6 +1615,207 @@ class ReportFeedbackResponse(StrictModel):
     summary: ReportFeedbackSummary
 
 
+class DecisionTraceRead(StrictModel):
+    trace_id: int
+    family_id: int | None = None
+    chain: Literal["plan48h", "script", "friction_support"]
+    final_status: Literal["success", "blocked", "fallback"]
+    graph_version: str = "v1"
+    stage_order: list[str] = Field(default_factory=list)
+    stage_runs: list[DecisionGraphStageRun] = Field(default_factory=list)
+    entry_signal_ids: list[int] = Field(default_factory=list)
+    request_context: dict[str, Any] = Field(default_factory=dict)
+    signal_result: dict[str, Any] = Field(default_factory=dict)
+    retrieval_bundle: RetrievalEvidenceBundle | None = None
+    candidate_output: dict[str, Any] = Field(default_factory=dict)
+    safety_review: CriticReview | None = None
+    evidence_review: CriticReview | None = None
+    provider_name: str | None = None
+    embedding_model: str | None = None
+    reranker_model: str | None = None
+    corpus_version: str | None = None
+    retrieval_stage_timings: dict[str, Any] = Field(default_factory=dict)
+    fallback_reason: str | None = None
+    final_reason: str | None = None
+    plan_tree: list[TaskNode] = Field(default_factory=list)
+    execution_state: ExecutionState | None = None
+    revision_no: int | None = None
+    parent_trace_id: int | None = None
+    replan_reason: str | None = None
+    created_at: datetime_type
+
+
+class FamilyPolicyWeightRead(StrictModel):
+    family_id: int
+    target_kind: Literal[
+        "card",
+        "chunk",
+        "scenario",
+        "method",
+        "timing",
+        "handoff_pattern",
+        "emotion_pattern",
+        "overload_trigger",
+        "successful_adjustment",
+        "failed_adjustment",
+    ]
+    target_key: str
+    weight: float
+    success_count: int = Field(ge=0)
+    failure_count: int = Field(ge=0)
+    recent_outcome_avg: float
+    usage_count: int = Field(ge=0)
+    last_feedback_at: datetime_type | None = None
+
+
+class PolicyMemoryItemRead(StrictModel):
+    target_kind: Literal[
+        "card",
+        "evidence_unit",
+        "scenario",
+        "method",
+        "timing",
+        "handoff_pattern",
+        "emotion_pattern",
+        "overload_trigger",
+        "successful_adjustment",
+        "failed_adjustment",
+    ]
+    target_key: str
+    global_weight: float
+    segment_weight: float
+    family_weight: float
+    effective_weight: float
+    source_evidence_count: int = Field(default=0, ge=0)
+    recent_effect_window: str = "lifetime"
+    top_supporting_chunk_ids: list[str] = Field(default_factory=list, max_length=3)
+
+
+class PolicyMemorySnapshotRead(StrictModel):
+    family_id: int
+    segment_key: str
+    generated_at: datetime_type
+    items: list[PolicyMemoryItemRead] = Field(default_factory=list)
+
+
+class PolicyMemoryDiffRead(StrictModel):
+    family_id: int
+    segment_key: str
+    strongest_positive: list[PolicyMemoryItemRead] = Field(default_factory=list, max_length=5)
+    strongest_negative: list[PolicyMemoryItemRead] = Field(default_factory=list, max_length=5)
+
+
+class BenchmarkMetricRead(StrictModel):
+    category: Literal["retrieval", "orchestration", "policy_learning", "multimodal", "ir_eval"]
+    name: str
+    value: float = Field(ge=0, le=1)
+    summary: str
+    details: dict[str, Any] = Field(default_factory=dict)
+
+
+class BenchmarkRunRead(StrictModel):
+    run_id: int
+    generated_at: datetime_type
+    summary: str
+    metrics: list[BenchmarkMetricRead] = Field(default_factory=list)
+
+
+class KnowledgeIngestionRequest(StrictModel):
+    family_id: int | None = None
+    source_type: Literal["strategy_card", "review_summary", "expert_rule", "multimodal_summary", "policy_note"]
+    title: str = Field(min_length=1, max_length=200)
+    body: str = Field(min_length=1, max_length=4000)
+    scope: Literal["global", "segment", "family"] = "global"
+    scope_key: str = Field(default="", max_length=128)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class KnowledgeIngestionResponse(StrictModel):
+    document_id: int
+    chunk_ids: list[int] = Field(default_factory=list)
+    source_type: str
+    scope: str
+    version: str
+
+
+class KnowledgeReindexResponse(StrictModel):
+    corpus_version: str
+    processed_chunks: int = Field(ge=0)
+    embedding_provider: str
+    embedding_model: str
+    job_id: str | None = None
+    job_status: Literal["accepted", "running", "completed", "failed"] = "completed"
+    message: str = ""
+
+
+class KnowledgeReindexJobRead(StrictModel):
+    job_id: str
+    job_status: Literal["accepted", "running", "completed", "failed"]
+    corpus_version: str
+    processed_chunks: int = Field(ge=0)
+    embedding_provider: str = ""
+    embedding_model: str = ""
+    message: str = ""
+
+
+class RetrievalTraceRead(StrictModel):
+    trace: DecisionTraceRead
+    retrieval_run_id: int | None = None
+    selected_sources: list[RetrievalSelectedSource] = Field(default_factory=list)
+    hard_filtered_reasons: list[str] = Field(default_factory=list)
+    feature_attribution: list[RetrievalFeatureAttribution] = Field(default_factory=list)
+    candidates: list[RetrievalTraceCandidateRead] = Field(default_factory=list)
+
+
+class V2GeneratePlanRequest(Plan48hGenerateRequest):
+    ingestion_ids: list[int] = Field(default_factory=list, max_length=4)
+
+
+class V2GenerateScriptRequest(ScriptGenerateRequest):
+    ingestion_ids: list[int] = Field(default_factory=list, max_length=4)
+
+
+class V2GenerateFrictionSupportRequest(FrictionSupportGenerateRequest):
+    ingestion_ids: list[int] = Field(default_factory=list, max_length=4)
+
+
+class V2PlanGenerateResponse(StrictModel):
+    blocked: bool = False
+    plan_id: int | None = None
+    risk: SignalOutput | None = None
+    plan: Plan48hResponse | None = None
+    safety_block: "SafetyBlockResponse | None" = None
+    trace_id: int
+    stage_summaries: list[DecisionGraphStageRun] = Field(default_factory=list)
+    fallback_summary: str | None = None
+    insufficient_evidence: bool = False
+    evidence_bundle: RetrievalEvidenceBundle | None = None
+
+
+class V2ScriptGenerateResponse(StrictModel):
+    blocked: bool = False
+    script: ScriptResponse | None = None
+    safety_block: "SafetyBlockResponse | None" = None
+    trace_id: int
+    stage_summaries: list[DecisionGraphStageRun] = Field(default_factory=list)
+    fallback_summary: str | None = None
+    insufficient_evidence: bool = False
+    evidence_bundle: RetrievalEvidenceBundle | None = None
+
+
+class V2FrictionSupportGenerateResponse(StrictModel):
+    blocked: bool = False
+    incident_id: int | None = None
+    risk: SignalOutput | None = None
+    support: FrictionSupportPlan | None = None
+    safety_block: "SafetyBlockResponse | None" = None
+    trace_id: int
+    stage_summaries: list[DecisionGraphStageRun] = Field(default_factory=list)
+    fallback_summary: str | None = None
+    insufficient_evidence: bool = False
+    evidence_bundle: RetrievalEvidenceBundle | None = None
+
+
 class ExportResponse(StrictModel):
     ok: bool
     export_count: int
@@ -1133,3 +1858,6 @@ OnboardingSetupResponse.model_rebuild()
 Plan48hGenerateResponse.model_rebuild()
 ScriptGenerateResponse.model_rebuild()
 FrictionSupportGenerateResponse.model_rebuild()
+V2PlanGenerateResponse.model_rebuild()
+V2ScriptGenerateResponse.model_rebuild()
+V2FrictionSupportGenerateResponse.model_rebuild()

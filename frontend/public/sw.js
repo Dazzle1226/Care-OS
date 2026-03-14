@@ -1,4 +1,4 @@
-const CACHE_NAME = 'care-os-v3';
+const CACHE_NAME = 'care-os-v6';
 const PRECACHE_URLS = ['/', '/manifest.json'];
 
 function isSameOrigin(request) {
@@ -28,12 +28,19 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const cloned = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+          if (response.ok) {
+            const cloned = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('/', cloned));
+          }
           return response;
         })
         .catch(() => caches.match(event.request).then((cached) => cached ?? caches.match('/')))
     );
+    return;
+  }
+
+  if (event.request.destination === 'script' || event.request.destination === 'style') {
+    event.respondWith(fetch(event.request));
     return;
   }
 

@@ -6,6 +6,7 @@ import type {
   FrictionSupportGenerateResponse,
   MicroRespiteFeedbackResponse,
   MicroRespiteGenerateResponse,
+  MultimodalIngestionResponse,
   MonthlyReport,
   OnboardingSetupPayload,
   OnboardingSummary,
@@ -15,13 +16,53 @@ import type {
   TrainingDomainDetail,
   TrainingFeedbackResponse,
   TrainingReminderResponse,
+  V2FrictionSupportGenerateResponse,
+  V3FrictionSessionCloseResponse,
+  V3FrictionSessionConfirmResponse,
+  V3FrictionSessionEventResponse,
+  V3FrictionSessionStartResponse,
+  V3TrainingSessionCloseResponse,
+  V3TrainingSessionEventResponse,
+  V3TrainingSessionStartResponse,
   WeeklyReport
 } from './types';
 
-const API_BASE = import.meta.env?.VITE_API_BASE_URL ?? 'http://localhost:8000/api';
+function normalizeApiBase(value: string) {
+  return value.replace(/\/+$/, '');
+}
+
+export function resolveApiBase(
+  explicitBase = import.meta.env?.VITE_API_BASE_URL,
+  locationLike:
+    | Pick<Location, 'hostname' | 'origin' | 'port' | 'protocol'>
+    | { hostname: string; origin: string; port: string; protocol: string }
+    | undefined = typeof window !== 'undefined' ? window.location : undefined
+) {
+  const trimmedBase = explicitBase?.trim();
+  if (trimmedBase) return normalizeApiBase(trimmedBase);
+
+  if (!locationLike) {
+    return 'http://localhost:8000/api';
+  }
+
+  if (locationLike.port === '5173') {
+    return '/api';
+  }
+
+  if (locationLike.port === '4173') {
+    return normalizeApiBase(`${locationLike.protocol}//${locationLike.hostname}:8000/api`);
+  }
+
+  return normalizeApiBase(`${locationLike.origin}/api`);
+}
+
+const API_BASE = resolveApiBase();
 export const FAMILY_MISSING_EVENT = 'care-os:family-missing';
 
 type Method = 'GET' | 'POST';
+type RequestOptions = {
+  timeoutMs?: number;
+};
 
 export class ApiError extends Error {
   status: number;
@@ -58,6 +99,32 @@ export function isFamilyNotFoundError(error: unknown) {
   return error instanceof Error && error.message.includes('Family not found');
 }
 
+export function getUserFacingApiError(error: unknown, fallbackMessage: string) {
+  if (error instanceof ApiError) {
+    return error.detail?.trim() || fallbackMessage;
+  }
+
+  if (error instanceof Error) {
+    return error.message?.trim() || fallbackMessage;
+  }
+
+  return fallbackMessage;
+}
+
+export function getNetworkErrorMessage(error: unknown) {
+  if (!(error instanceof Error)) return null;
+
+  if (error.name === 'AbortError') {
+    return '请求超时：本地后端响应过慢。请确认后端已启动完成后重试。';
+  }
+
+  if (error instanceof TypeError) {
+    return '无法连接本地后端服务。请确认 http://localhost:8000 已启动，或检查 VITE_API_BASE_URL / Vite 代理配置。';
+  }
+
+  return null;
+}
+
 async function buildApiError(resp: Response) {
   const text = await resp.text();
   const detail = parseErrorDetail(text);
@@ -78,14 +145,51 @@ async function buildApiError(resp: Response) {
   return error;
 }
 
-async function request<T>(path: string, method: Method, token?: string, body?: unknown): Promise<T> {
+async function request<T>(path: string, method: Method, token?: string, body?: unknown, options?: RequestOptions): Promise<T> {
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeoutMs = options?.timeoutMs ?? null;
+  const timeoutId =
+    controller && timeoutMs
+      ? globalThis.setTimeout(() => {
+          controller.abort();
+        }, timeoutMs)
+      : null;
+
+  let resp: Response;
+  try {
+    resp = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller?.signal
+    });
+  } catch (error) {
+    if (timeoutId !== null) globalThis.clearTimeout(timeoutId);
+    const message = getNetworkErrorMessage(error);
+    if (message) {
+      throw new Error(message);
+    }
+    throw error;
+  }
+
+  if (timeoutId !== null) globalThis.clearTimeout(timeoutId);
+
+  if (!resp.ok) {
+    throw await buildApiError(resp);
+  }
+  return (await resp.json()) as T;
+}
+
+async function requestFormData<T>(path: string, token: string, body: FormData): Promise<T> {
   const resp = await fetch(`${API_BASE}${path}`, {
-    method,
+    method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
+      Authorization: `Bearer ${token}`
     },
-    body: body ? JSON.stringify(body) : undefined
+    body
   });
 
   if (!resp.ok) {
@@ -113,8 +217,12 @@ export async function completeOnboarding(
   return request<OnboardingSummary>('/onboarding/setup', 'POST', token, payload);
 }
 
-export async function getOnboardingFamily(token: string, familyId: number): Promise<OnboardingSummary> {
-  return request<OnboardingSummary>(`/onboarding/family/${familyId}`, 'GET', token);
+export async function getOnboardingFamily(
+  token: string,
+  familyId: number,
+  options?: RequestOptions
+): Promise<OnboardingSummary> {
+  return request<OnboardingSummary>(`/onboarding/family/${familyId}`, 'GET', token, undefined, options);
 }
 
 export async function upsertProfile(token: string, payload: Record<string, unknown>) {
@@ -158,6 +266,66 @@ export async function generateFrictionSupport(
   return request<FrictionSupportGenerateResponse>('/scripts/friction-support', 'POST', token, payload);
 }
 
+export async function generateFrictionSupportV2(
+  token: string,
+  payload: Record<string, unknown>
+): Promise<V2FrictionSupportGenerateResponse> {
+  return request<V2FrictionSupportGenerateResponse>('/v2/scripts/friction-support', 'POST', token, payload);
+}
+
+export async function startFrictionSessionV3(
+  token: string,
+  payload: Record<string, unknown>
+): Promise<V3FrictionSessionStartResponse> {
+  return request<V3FrictionSessionStartResponse>('/v3/friction-sessions/start', 'POST', token, payload);
+}
+
+export async function addFrictionSessionEventV3(
+  token: string,
+  sessionId: number,
+  payload: Record<string, unknown>
+): Promise<V3FrictionSessionEventResponse> {
+  return request<V3FrictionSessionEventResponse>(`/v3/friction-sessions/${sessionId}/events`, 'POST', token, payload);
+}
+
+export async function confirmFrictionSessionV3(
+  token: string,
+  sessionId: number,
+  payload: Record<string, unknown>
+): Promise<V3FrictionSessionConfirmResponse> {
+  return request<V3FrictionSessionConfirmResponse>(`/v3/friction-sessions/${sessionId}/confirm`, 'POST', token, payload);
+}
+
+export async function closeFrictionSessionV3(
+  token: string,
+  sessionId: number,
+  payload: Record<string, unknown>
+): Promise<V3FrictionSessionCloseResponse> {
+  return request<V3FrictionSessionCloseResponse>(`/v3/friction-sessions/${sessionId}/close`, 'POST', token, payload);
+}
+
+export async function ingestDocument(
+  token: string,
+  payload: Record<string, unknown>
+): Promise<MultimodalIngestionResponse> {
+  return request<MultimodalIngestionResponse>('/v2/ingestions/document', 'POST', token, payload);
+}
+
+export async function ingestAudio(
+  token: string,
+  payload: Record<string, unknown>
+): Promise<MultimodalIngestionResponse> {
+  return request<MultimodalIngestionResponse>('/v2/ingestions/audio', 'POST', token, payload);
+}
+
+export async function uploadDocumentFile(token: string, payload: FormData): Promise<MultimodalIngestionResponse> {
+  return requestFormData<MultimodalIngestionResponse>('/v2/ingestions/document-file', token, payload);
+}
+
+export async function uploadAudioFile(token: string, payload: FormData): Promise<MultimodalIngestionResponse> {
+  return requestFormData<MultimodalIngestionResponse>('/v2/ingestions/audio-file', token, payload);
+}
+
 export async function getCurrentTrainingPlan(token: string, familyId: number): Promise<TrainingDashboard> {
   return request<TrainingDashboard>(`/training/current/${familyId}`, 'GET', token);
 }
@@ -191,6 +359,29 @@ export async function scheduleTrainingReminder(
   return request<TrainingReminderResponse>('/training/reminder', 'POST', token, payload);
 }
 
+export async function startTrainingSessionV3(
+  token: string,
+  payload: Record<string, unknown>
+): Promise<V3TrainingSessionStartResponse> {
+  return request<V3TrainingSessionStartResponse>('/v3/training-sessions/start', 'POST', token, payload);
+}
+
+export async function addTrainingSessionEventV3(
+  token: string,
+  sessionId: number,
+  payload: Record<string, unknown>
+): Promise<V3TrainingSessionEventResponse> {
+  return request<V3TrainingSessionEventResponse>(`/v3/training-sessions/${sessionId}/events`, 'POST', token, payload);
+}
+
+export async function closeTrainingSessionV3(
+  token: string,
+  sessionId: number,
+  payload: Record<string, unknown>
+): Promise<V3TrainingSessionCloseResponse> {
+  return request<V3TrainingSessionCloseResponse>(`/v3/training-sessions/${sessionId}/close`, 'POST', token, payload);
+}
+
 export async function submitFrictionSupportFeedback(
   token: string,
   payload: Record<string, unknown>
@@ -215,10 +406,6 @@ export async function submitReportFeedback(
   payload: Record<string, unknown>
 ): Promise<ReportFeedbackResponse> {
   return request<ReportFeedbackResponse>('/report/feedback', 'POST', token, payload);
-}
-
-export async function exportWeeklyReport(token: string, familyId: number, weekStart: string) {
-  return request('/report/export', 'POST', token, { family_id: familyId, week_start: weekStart });
 }
 
 export async function exportSupportCard(token: string, familyId: number, format: 'pdf' | 'png') {

@@ -1,16 +1,13 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
-from app.agents.plan import PlanAgent, PlanContext
-from app.agents.safety import SafetyAgent
-from app.agents.signal import SignalAgent
 from app.api.deps import get_current_user
 from app.db.base import get_db
-from app.models import DailyCheckin, Family, Plan48h, PlanCardUse, User
+from app.models import Family, Plan48h, PlanCardUse, User
 from app.schemas.domain import Plan48hGenerateRequest, Plan48hGenerateResponse, Plan48hResponse, PlanRead
+from app.services.decision_orchestrator import DecisionOrchestrator
 
 router = APIRouter(prefix="/plan48h", tags=["plan"])
 
@@ -25,61 +22,59 @@ def generate_plan(
     if family is None:
         raise HTTPException(status_code=404, detail="Family not found")
 
-    signal = SignalAgent().evaluate(db=db, family_id=payload.family_id, manual_trigger=payload.manual_trigger)
-    latest_checkin = db.scalar(
-        select(DailyCheckin)
-        .where(DailyCheckin.family_id == payload.family_id)
-        .order_by(desc(DailyCheckin.date))
-        .limit(1)
-    )
-    support_hint = latest_checkin.support_available if latest_checkin else "none"
+    result = DecisionOrchestrator().generate_plan(db=db, family=family, payload=payload)
 
-    context = PlanContext(
-        family_id=payload.family_id,
-        scenario=payload.scenario,
-        intensity="heavy" if signal.risk_level == "red" else "medium",
-        support_hint=support_hint,
-        free_text=payload.free_text,
-    )
-
-    plan = PlanAgent().generate_48h_plan(db=db, family=family, signal=signal, context=context)
-
-    profile_donts = family.child_profile.donts if family.child_profile else []
-    safety = SafetyAgent().validate_plan(
-        plan=plan,
-        profile_donts=profile_donts,
-        explicit_high_risk=payload.high_risk_selected,
-        free_text=payload.free_text,
-    )
-
-    if safety.blocked:
-        return Plan48hGenerateResponse(blocked=True, risk=signal, safety_block=safety.block)
+    if result.safety.blocked:
+        db.commit()
+        return Plan48hGenerateResponse(
+            blocked=True,
+            risk=result.signal,
+            safety_block=result.safety.block,
+            evidence_bundle=result.evidence_bundle if payload.include_debug else None,
+            decision_trace_id=result.trace_id if payload.include_debug else None,
+            decision_summary=result.safety_review.summary if payload.include_debug else None,
+        )
+    if result.evidence_review.blocked:
+        db.commit()
+        raise HTTPException(status_code=422, detail=result.evidence_review.summary)
 
     entity = Plan48h(
         family_id=payload.family_id,
-        risk_level=signal.risk_level,
+        risk_level=result.signal.risk_level,
         actions_json={
-            "today_cut_list": plan.today_cut_list,
-            "priority_scenarios": plan.priority_scenarios,
-            "exit_card_3steps": plan.exit_card_3steps,
-            "action_steps": [item.model_dump() for item in plan.action_steps],
+            "today_cut_list": result.plan.today_cut_list,
+            "priority_scenarios": result.plan.priority_scenarios,
+            "exit_card_3steps": result.plan.exit_card_3steps,
+            "action_steps": [item.model_dump() for item in result.plan.action_steps],
         },
-        respite_json={"slots": [slot.model_dump() for slot in plan.respite_slots]},
-        messages_json={"messages": [msg.model_dump() for msg in plan.messages], "tomorrow": plan.tomorrow_plan},
-        safety_flags=plan.safety_flags,
-        citations=plan.citations,
+        respite_json={"slots": [slot.model_dump() for slot in result.plan.respite_slots]},
+        messages_json={"messages": [msg.model_dump() for msg in result.plan.messages], "tomorrow": result.plan.tomorrow_plan},
+        safety_flags=result.plan.safety_flags,
+        citations=result.plan.citations,
         blocked=False,
     )
     db.add(entity)
     db.flush()
 
-    for idx, card_id in enumerate(plan.citations):
+    for idx, card_id in enumerate(result.plan.citations):
         db.add(PlanCardUse(plan_id=entity.plan_id, card_id=card_id, order_idx=idx + 1))
 
     db.commit()
     db.refresh(entity)
 
-    return Plan48hGenerateResponse(blocked=False, plan_id=entity.plan_id, risk=signal, plan=plan)
+    return Plan48hGenerateResponse(
+        blocked=False,
+        plan_id=entity.plan_id,
+        risk=result.signal,
+        plan=result.plan,
+        evidence_bundle=result.evidence_bundle if payload.include_debug else None,
+        decision_trace_id=result.trace_id if payload.include_debug else None,
+        decision_summary=(
+            "规则降级已触发，但证据链和安全审查通过。"
+            if payload.include_debug and result.fallback_reason
+            else (result.evidence_bundle.ranking_summary if payload.include_debug else None)
+        ),
+    )
 
 
 @router.get("/{plan_id}", response_model=PlanRead)

@@ -25,6 +25,17 @@ class PlanAgent:
     def __init__(self) -> None:
         self.llm = LLMClient()
 
+    def _fallback_reason(self, exc: Exception) -> str:
+        attempts = getattr(self.llm, "last_attempts", None) or []
+        if not attempts:
+            return str(exc)
+        summary = " | ".join(
+            f"{item.get('provider', 'unknown')}:{item.get('status', 'failed')}"
+            + (f"({item.get('reason')})" if item.get("reason") else "")
+            for item in attempts
+        )
+        return summary
+
     def _scenario_candidates(self, profile: ChildProfile | None, scenario: str | None) -> list[str]:
         scenarios: list[str] = []
         if scenario:
@@ -35,6 +46,47 @@ class PlanAgent:
             scenarios = ["transition", "bedtime"]
         # keep order and uniqueness
         return list(dict.fromkeys(scenarios))
+
+    @staticmethod
+    def _list_of_strings(value: object, *, minimum: int = 0) -> list[str]:
+        if not isinstance(value, list):
+            return []
+        items = [item.strip() for item in value if isinstance(item, str) and item.strip()]
+        return items if len(items) >= minimum else []
+
+    def _normalize_llm_script(self, raw: dict, cards: list, scenario: str, intensity: str) -> dict:
+        normalized = dict(raw)
+
+        if not normalized.get("script_line"):
+            scripts = normalized.get("scripts")
+            if isinstance(scripts, dict):
+                parent_line = scripts.get("parent")
+                if isinstance(parent_line, str) and parent_line.strip():
+                    normalized["script_line"] = f"[{scenario}/{intensity}] {parent_line.strip()}"
+
+        exit_plan = self._list_of_strings(normalized.get("exit_plan"), minimum=1)
+        if not exit_plan:
+            exit_plan = self._list_of_strings(normalized.get("escalate_when"), minimum=1)
+        if exit_plan:
+            normalized["exit_plan"] = exit_plan[:3]
+
+        steps = self._list_of_strings(normalized.get("steps"), minimum=3)
+        if steps:
+            normalized["steps"] = steps[:3]
+
+        donts = self._list_of_strings(normalized.get("donts"), minimum=2)
+        if donts:
+            normalized["donts"] = donts[:3]
+
+        citations = self._list_of_strings(normalized.get("citations"), minimum=1)
+        if not citations:
+            citations = [card.card_id for card in cards]
+        normalized["citations"] = citations
+
+        # Drop common extra keys returned by some providers before pydantic validation.
+        for key in ["scenario", "intensity", "free_text", "scripts", "escalate_when"]:
+            normalized.pop(key, None)
+        return normalized
 
     def _attempt_llm_plan(
         self,
@@ -123,16 +175,22 @@ class PlanAgent:
         )
 
         raw = self.llm.generate_json(system_prompt=system_prompt, user_prompt=user_prompt)
-        if "citations" not in raw or not raw["citations"]:
-            raw["citations"] = [card.card_id for card in cards]
-        return ScriptResponse.model_validate(raw)
+        normalized = self._normalize_llm_script(raw=raw, cards=cards, scenario=scenario, intensity=intensity)
+        return ScriptResponse.model_validate(normalized)
 
-    def generate_48h_plan(self, db: Session, family: Family, signal: SignalOutput, context: PlanContext) -> Plan48hResponse:
+    def generate_48h_plan_with_meta(
+        self,
+        db: Session,
+        family: Family,
+        signal: SignalOutput,
+        context: PlanContext,
+        cards: list | None = None,
+    ) -> tuple[Plan48hResponse, str | None]:
         retrieval = RetrievalService(db)
         profile = family.child_profile
         scenarios = self._scenario_candidates(profile, context.scenario)
 
-        cards = retrieval.compose_plan_cards(
+        selected_cards = cards or retrieval.compose_plan_cards(
             family_id=family.family_id,
             scenario=scenarios[0],
             intensity=context.intensity,
@@ -141,18 +199,54 @@ class PlanAgent:
             max_cards=3,
         )
 
-        if not cards:
+        if not selected_cards:
             raise ValueError("No strategy cards available")
 
         try:
-            return self._attempt_llm_plan(signal, scenarios, cards, context, profile)
-        except (LLMUnavailableError, ValueError, TypeError, json.JSONDecodeError):
-            return build_fallback_plan(
-                risk_level=signal.risk_level,
-                scenarios=scenarios,
-                cards=cards,
-                support_hint=context.support_hint,
+            return self._attempt_llm_plan(signal, scenarios, selected_cards, context, profile), None
+        except (LLMUnavailableError, ValueError, TypeError, json.JSONDecodeError) as exc:
+            return (
+                build_fallback_plan(
+                    risk_level=signal.risk_level,
+                    scenarios=scenarios,
+                    cards=selected_cards,
+                    support_hint=context.support_hint,
+                ),
+                self._fallback_reason(exc),
             )
+
+    def generate_48h_plan(self, db: Session, family: Family, signal: SignalOutput, context: PlanContext) -> Plan48hResponse:
+        plan, _ = self.generate_48h_plan_with_meta(db=db, family=family, signal=signal, context=context)
+        return plan
+
+    def generate_script_with_meta(
+        self,
+        db: Session,
+        family: Family,
+        scenario: str,
+        intensity: str,
+        free_text: str,
+        cards: list | None = None,
+    ) -> tuple[ScriptResponse, str | None]:
+        retrieval = RetrievalService(db)
+        profile = family.child_profile
+
+        selected_cards = cards or retrieval.compose_plan_cards(
+            family_id=family.family_id,
+            scenario=scenario,
+            intensity=intensity,
+            profile=profile,
+            extra_context=free_text,
+            max_cards=3,
+        )
+
+        if not selected_cards:
+            raise ValueError("No strategy cards available")
+
+        try:
+            return self._attempt_llm_script(scenario, intensity, selected_cards, free_text), None
+        except (LLMUnavailableError, ValueError, TypeError, json.JSONDecodeError) as exc:
+            return build_fallback_script(cards=selected_cards, scenario=scenario, intensity=intensity), self._fallback_reason(exc)
 
     def generate_script(
         self,
@@ -162,22 +256,11 @@ class PlanAgent:
         intensity: str,
         free_text: str,
     ) -> ScriptResponse:
-        retrieval = RetrievalService(db)
-        profile = family.child_profile
-
-        cards = retrieval.compose_plan_cards(
-            family_id=family.family_id,
+        script, _ = self.generate_script_with_meta(
+            db=db,
+            family=family,
             scenario=scenario,
             intensity=intensity,
-            profile=profile,
-            extra_context=free_text,
-            max_cards=3,
+            free_text=free_text,
         )
-
-        if not cards:
-            raise ValueError("No strategy cards available")
-
-        try:
-            return self._attempt_llm_script(scenario, intensity, cards, free_text)
-        except (LLMUnavailableError, ValueError, TypeError, json.JSONDecodeError):
-            return build_fallback_script(cards=cards, scenario=scenario, intensity=intensity)
+        return script

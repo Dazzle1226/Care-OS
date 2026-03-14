@@ -47,7 +47,12 @@ export function OnboardingPage({ token, onComplete }: Props) {
   };
 
   return (
-    <div className="modal-shell onboarding-modal-shell" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+    <div
+      className="modal-shell onboarding-modal-shell content-page-shell onboarding-page-shell"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="onboarding-title"
+    >
       <div className="modal-backdrop" />
       <div className="modal-card modal-card-wide onboarding-modal-card">
         <div className="grid">

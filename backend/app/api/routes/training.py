@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db.base import get_db
-from app.models import Family, TrainingTaskFeedback, User
+from app.models import Family, TrainingPlanCycle, TrainingTaskFeedback, User
 from app.schemas.domain import (
     TrainingDashboardResponse,
     TrainingDomainDetailResponse,
@@ -17,6 +17,7 @@ from app.schemas.domain import (
     TrainingTaskFeedbackRequest,
     TrainingTaskFeedbackResponse,
 )
+from app.services.policy_learning import PolicyLearningService
 from app.services.training_system import TrainingSystemService
 
 router = APIRouter(prefix="/training", tags=["training"])
@@ -117,6 +118,27 @@ def submit_training_feedback(
     )
     db.add(feedback)
     db.flush()
+    outcome_score = 2 if effect_score >= 7 else 1 if effect_score >= 5 else 0 if effect_score >= 3 else -1 if effect_score >= 1 else -2
+    PolicyLearningService().record_training_feedback(
+        db=db,
+        family_id=payload.family_id,
+        outcome_score=outcome_score,
+        area_key=task.area_key,
+        task_title=task.title,
+        task_date=(payload.date or date_type.today()).isoformat(),
+    )
+    cycle = db.get(TrainingPlanCycle, task.cycle_id)
+    coordination = cycle.snapshot_json.get("coordination", {}) if cycle and isinstance(cycle.snapshot_json, dict) else {}
+    emotion = coordination.get("emotion", {}) if isinstance(coordination, dict) else {}
+    PolicyLearningService().record_adaptive_feedback(
+        db=db,
+        family_id=payload.family_id,
+        outcome_score=outcome_score,
+        emotion_pattern=f"{emotion.get('child_emotion', 'unknown')}|{emotion.get('caregiver_emotion', 'unknown')}",
+        overload_trigger=str(payload.obstacle_tag or coordination.get("readiness_status") or "training_feedback"),
+        handoff_pattern="",
+        adjustment_key=f"training:{coordination.get('readiness_status', 'ready')}:{task.area_key}",
+    )
     adjustment_summary, safety_alert = service.apply_feedback(db=db, family=family, task=task, feedback=feedback)
     dashboard = service.get_dashboard(db=db, family=family)
     db.commit()

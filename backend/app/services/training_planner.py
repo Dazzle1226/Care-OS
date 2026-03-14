@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import json
-from datetime import date as date_type, datetime, timedelta
+from datetime import date as date_type, timedelta
 from typing import Any
 
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
+from app.core.time import utc_now
 from app.models import ChildProfile, DailyTrainingTask, Family, TrainingPlanCycle, TrainingSkillState
+from app.services.training_coordination import TrainingCoordinationResult
 from app.services.llm_client import LLMClient, LLMUnavailableError
 from app.services.training_assessment import AssessmentResult, DomainAssessment
 from app.services.training_registry import get_domain
@@ -266,6 +268,7 @@ def persist_training_cycle(
     db: Session,
     family: Family,
     assessment: AssessmentResult,
+    coordination: TrainingCoordinationResult,
     extra_context: str = "",
     force_new: bool = False,
 ) -> TrainingPlanCycle:
@@ -302,7 +305,7 @@ def persist_training_cycle(
         state.weekly_sessions_count = area.weekly_sessions_count
         state.success_count = area.success_count
         state.effectiveness_score = area.effectiveness_score
-        state.last_assessed_at = datetime.utcnow()
+        state.last_assessed_at = utc_now()
         state.meta_json = detail
 
     today = date_type.today()
@@ -331,7 +334,7 @@ def persist_training_cycle(
             family_id=family.family_id,
             cycle_date=today,
             active=True,
-            load_level=assessment.load_level,
+            load_level=coordination.effective_load_level,
             weekly_summary=assessment.summary_text,
             source_summary=assessment.source_summary,
             top_area_keys=assessment.top_area_keys,
@@ -340,7 +343,7 @@ def persist_training_cycle(
         db.add(cycle)
         db.flush()
 
-    cycle.load_level = assessment.load_level
+    cycle.load_level = coordination.effective_load_level
     cycle.weekly_summary = assessment.summary_text
     cycle.source_summary = f"{assessment.source_summary}；{extra_context.strip()}" if extra_context.strip() else assessment.source_summary
     cycle.top_area_keys = assessment.top_area_keys
@@ -356,14 +359,32 @@ def persist_training_cycle(
         db.flush()
 
         task_candidates = []
-        for area_key in assessment.top_area_keys[: _task_count(assessment.load_level)]:
+        for area_key in assessment.top_area_keys[: coordination.task_limit]:
             area = assessment.assessments[area_key]
             detail = detail_by_area[area_key]
+            task_snapshot = _build_task_snapshot(area_key=area_key, area=area, detail=detail)
+            if coordination.readiness_status == "lighter":
+                task_snapshot.update(
+                    {
+                        "title": f"{task_snapshot['title']} · 低负担版",
+                        "duration_minutes": min(int(task_snapshot["duration_minutes"]), 5),
+                        "coaching_tip": f"今天先压低负担：{coordination.recommended_action}",
+                        "why_today": coordination.readiness_reason,
+                        "coordination_mode": "lighter",
+                    }
+                )
+            else:
+                task_snapshot.update(
+                    {
+                        "why_today": coordination.readiness_reason,
+                        "coordination_mode": coordination.readiness_status,
+                    }
+                )
             task_candidates.append(
                 {
                     "area_key": area_key,
                     "detail": detail,
-                    "task": _build_task_snapshot(area_key=area_key, area=area, detail=detail),
+                    "task": task_snapshot,
                 }
             )
 
@@ -403,9 +424,18 @@ def persist_training_cycle(
     cycle.snapshot_json = {
         "child_summary": assessment.child_summary,
         "summary_text": assessment.summary_text,
-        "load_level": assessment.load_level,
+        "load_level": coordination.effective_load_level,
         "top_area_keys": assessment.top_area_keys,
         "domain_plans": detail_by_area,
+        "coordination": {
+            "readiness_status": coordination.readiness_status,
+            "readiness_reason": coordination.readiness_reason,
+            "recommended_action": coordination.recommended_action,
+            "signal": coordination.signal.model_dump(),
+            "emotion": coordination.emotion.model_dump(),
+            "used_memory_signals": coordination.used_memory_signals,
+            "coordination_hint": coordination.coordination_hint,
+        },
     }
     db.flush()
     return cycle

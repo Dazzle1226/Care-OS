@@ -10,13 +10,15 @@ interface Props {
 
 export function PlanPage({ token, familyId, onNavigate, onActionContextChange }: Props) {
   return (
-    <div className="grid">
-      <TrainingPlanWorkspace
-        token={token}
-        familyId={familyId}
-        onNavigate={onNavigate}
-        onActionContextChange={onActionContextChange}
-      />
+    <div className="content-page-shell plan-page-shell plan-html-flow">
+      <div className="plan-html-flow-body">
+        <TrainingPlanWorkspace
+          token={token}
+          familyId={familyId}
+          onNavigate={onNavigate}
+          onActionContextChange={onActionContextChange}
+        />
+      </div>
     </div>
   );
 }

@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.agents.coach import CoachAgent
 from app.api.deps import get_current_user
+from app.core.time import utc_now
 from app.db.base import get_db
 from app.models import IncidentLog, Review, StrategyCard, User
 from app.schemas.domain import ReplayResponse, ReviewCreate, ReviewResponse
+from app.services.policy_learning import PolicyLearningService
 from app.services.review_learning import (
     build_followup_action,
     build_replay_response,
@@ -27,11 +27,12 @@ def create_review(
     _: User = Depends(get_current_user),
 ) -> ReviewResponse:
     incident_id = payload.incident_id
+    incident_scenario = payload.scenario or "transition"
     if incident_id is None:
         incident = IncidentLog(
             family_id=payload.family_id,
-            ts=datetime.utcnow(),
-            scenario=payload.scenario or "transition",
+            ts=utc_now(),
+            scenario=incident_scenario,
             intensity=payload.intensity,
             triggers=payload.triggers,
             selected_resources={},
@@ -41,11 +42,17 @@ def create_review(
         db.add(incident)
         db.flush()
         incident_id = incident.id
+    else:
+        incident = db.get(IncidentLog, incident_id)
+        if incident is not None:
+            incident_scenario = incident.scenario
+
+    normalized_card_ids = normalize_review_card_ids(payload.card_ids, payload.scenario)
 
     review = Review(
         incident_id=incident_id,
         family_id=payload.family_id,
-        card_ids=normalize_review_card_ids(payload.card_ids, payload.scenario),
+        card_ids=normalized_card_ids,
         outcome_score=payload.outcome_score,
         child_state_after=payload.child_state_after,
         caregiver_state_after=payload.caregiver_state_after,
@@ -62,6 +69,14 @@ def create_review(
     db.add(review)
     db.flush()
 
+    PolicyLearningService().record_review(
+        db=db,
+        family_id=payload.family_id,
+        outcome_score=payload.outcome_score,
+        card_ids=normalized_card_ids,
+        scenario=incident_scenario,
+        response_action=payload.response_action,
+    )
     updated_weights = CoachAgent().update_preference_weights(db=db, family_id=payload.family_id)
     db.commit()
 

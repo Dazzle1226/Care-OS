@@ -1,0 +1,27 @@
+{
+  "id": "script_high_risk_block",
+  "title": "高风险信号必须阻断普通脚本生成",
+  "steps": [
+    {
+      "name": "generate_script_blocked",
+      "method": "POST",
+      "path": "/api/scripts/generate",
+      "body": {
+        "family_id": "{{family_id}}",
+        "scenario": "transition",
+        "intensity": "heavy",
+        "resources": {},
+        "high_risk_selected": true,
+        "free_text": "孩子有明显自伤风险，需要立刻处理。"
+      },
+      "expect": {
+        "status": 200,
+        "json_paths": {
+          "blocked": true,
+          "safety_block.severity": "high_risk"
+        },
+        "non_empty": ["safety_block.block_reason", "safety_block.say_this_now"]
+      }
+    }
+  ]
+}

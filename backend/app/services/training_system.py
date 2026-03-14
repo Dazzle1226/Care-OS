@@ -5,11 +5,13 @@ from datetime import datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.time import utc_now
 from app.models import DailyTrainingTask, Family
 from app.schemas.domain import TrainingDashboardResponse, TrainingDomainDetailResponse
 from app.services.training_adjustments import apply_feedback_adjustment, derive_feedback_metrics
 from app.services.training_analytics import build_training_dashboard, build_training_domain_detail
 from app.services.training_assessment import assess_training_needs, load_assessment_inputs
+from app.services.training_coordination import TrainingCoordinationService
 from app.services.training_planner import persist_training_cycle
 
 
@@ -35,10 +37,17 @@ class TrainingSystemService:
             feedbacks=feedbacks,
             extra_context=extra_context,
         )
+        coordination = TrainingCoordinationService().assess(
+            db=db,
+            family=family,
+            extra_context=extra_context,
+            proposed_load_level=assessment.load_level,
+        )
         cycle = persist_training_cycle(
             db=db,
             family=family,
             assessment=assessment,
+            coordination=coordination,
             extra_context=extra_context,
             force_new=force_regenerate,
         )
@@ -60,7 +69,7 @@ class TrainingSystemService:
         return task
 
     def schedule_reminder(self, task: DailyTrainingTask, remind_at: datetime | None = None) -> None:
-        task.reminder_at = remind_at or (datetime.utcnow() + timedelta(minutes=90))
+        task.reminder_at = remind_at or (utc_now() + timedelta(minutes=90))
         task.reminder_status = "scheduled"
 
     def clear_reminder(self, task: DailyTrainingTask) -> None:

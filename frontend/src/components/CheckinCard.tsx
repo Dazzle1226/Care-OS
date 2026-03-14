@@ -88,7 +88,7 @@ function FieldLabel({ text, tone }: { text: string; tone: StepTone }) {
 export function CheckinCard({ open, date, submitting, initialValues, onClose, onSubmit }: Props) {
   const [step, setStep] = useState<CheckinStep>('intro');
   const [form, setForm] = useState<CheckinFormValues>(defaultCheckinFormValues);
-  const modalCardRef = useRef<HTMLDivElement | null>(null);
+  const modalScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -119,7 +119,7 @@ export function CheckinCard({ open, date, submitting, initialValues, onClose, on
 
   useEffect(() => {
     if (!open) return;
-    modalCardRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    modalScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [open, step]);
 
   if (!open) return null;
@@ -133,157 +133,172 @@ export function CheckinCard({ open, date, submitting, initialValues, onClose, on
   return createPortal(
     <div className="modal-shell" role="dialog" aria-modal="true" aria-labelledby="daily-checkin-title">
       <div className="modal-backdrop" onClick={onClose} />
-      <div ref={modalCardRef} className="modal-card">
-        <button className="icon-btn" type="button" onClick={onClose} aria-label="关闭签到弹窗">
+      <div className="modal-card modal-card-fixed-close checkin-modal-card">
+        <button
+          className="icon-btn modal-close-fixed"
+          type="button"
+          onClick={onClose}
+          aria-label="关闭签到弹窗"
+        >
           ×
         </button>
-
-        {step === 'intro' ? (
-          <div className="checkin-intro">
-            <p className="eyebrow">每日签到</p>
-            <h3 id="daily-checkin-title">你好，今天如何？</h3>
-            <div className="intro-pills">
-              <span>先填必填，再决定是否补充</span>
-              <span>每一步都能继续</span>
-              <span>完成后即时生成今日对策</span>
-            </div>
-            <button className="btn" type="button" onClick={() => setStep('required-info')}>
-              开始签到
-            </button>
-          </div>
-        ) : (
-          <div className="checkin-form">
-            <div className="checkin-header">
-              <div>
-                <p className="eyebrow">今日签到</p>
-                <h3 id="daily-checkin-title">按步骤填写今天最必要的信息</h3>
+        <div ref={modalScrollRef} className="modal-scroll-area">
+          {step === 'intro' ? (
+            <div className="checkin-intro">
+              <p className="eyebrow">每日签到</p>
+              <h3 id="daily-checkin-title">你好，今天如何？</h3>
+              <div className="intro-pills">
+                <span>先填必填，再决定是否补充</span>
+                <span>每一步都能继续</span>
+                <span>完成后即时生成今日对策</span>
               </div>
-              <span className="date-pill">{date}</span>
+              <button className="btn" type="button" onClick={() => setStep('required-info')}>
+                开始签到
+              </button>
             </div>
-
-            {currentStep ? (
-              <>
-                <div className="step-progress">
-                  <span className="step-progress-count">
-                    步骤 {currentIndex + 1} / {stepConfigs.length}
-                  </span>
-                  <span className="step-progress-copy">
-                    {currentStep.tone === 'required' ? '先完成必要信息' : '这一步可直接继续'}
-                  </span>
+          ) : (
+            <div className="checkin-form">
+              <div className="checkin-header">
+                <div>
+                  <p className="eyebrow">今日签到</p>
+                  <h3 id="daily-checkin-title">按步骤填写今天最必要的信息</h3>
                 </div>
+                <span className="date-pill">{date}</span>
+              </div>
 
-                <div className="step-heading">
-                  <div>
-                    <p className="eyebrow">{currentStep.eyebrow}</p>
-                    <h3>{currentStep.title}</h3>
+              {currentStep ? (
+                <>
+                  <div className="step-progress">
+                    <span className="step-progress-count">
+                      步骤 {currentIndex + 1} / {stepConfigs.length}
+                    </span>
+                    <span className="step-progress-copy">
+                      {currentStep.tone === 'required' ? '先完成必要信息' : '这一步可直接继续'}
+                    </span>
                   </div>
-                  <StepBadge tone={currentStep.tone} />
-                </div>
 
-                {currentStep.description ? <p className="muted step-description">{currentStep.description}</p> : null}
+                  <div className="step-heading">
+                    <div>
+                      <p className="eyebrow">{currentStep.eyebrow}</p>
+                      <h3>{currentStep.title}</h3>
+                    </div>
+                    <StepBadge tone={currentStep.tone} />
+                  </div>
 
-                {step === 'required-info' ? (
-                  <div className="required-info-layout">
-                    <div className="question-group required-info-panel">
-                      <h4>核心状态</h4>
-                      <label>
-                        <FieldLabel text="今天感官过载" tone="required" />
-                        <select
-                          className="input"
-                          value={form.sensory_overload_level}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              sensory_overload_level: e.target.value as SensoryLevel
-                            }))
-                          }
-                        >
-                          <option value="none">无</option>
-                          <option value="light">轻微</option>
-                          <option value="medium">中等</option>
-                          <option value="heavy">严重</option>
-                        </select>
-                      </label>
-                      <fieldset className="segmented">
-                        <legend className="field-label">
-                          <span className="label">冲突 / 崩溃次数</span>
-                          <StepBadge tone="required" />
-                        </legend>
-                        {[
-                          { label: '0', value: 0 },
-                          { label: '1', value: 1 },
-                          { label: '2', value: 2 },
-                          { label: '3+', value: 3 }
-                        ].map((item) => (
-                          <label key={item.label} className={`option-chip ${form.meltdown_count === item.value ? 'active' : ''}`}>
-                            <input
-                              type="radio"
-                              name="meltdown_count"
-                              checked={form.meltdown_count === item.value}
-                              onChange={() => setForm((prev) => ({ ...prev, meltdown_count: item.value }))}
-                            />
-                            <span>{item.label}</span>
-                          </label>
-                        ))}
-                      </fieldset>
-                      <label className="range-field">
-                        <div className="field-head">
-                          <FieldLabel text="过渡难度" tone="required" />
-                          <strong>{form.transition_difficulty ?? 4} / 10</strong>
-                        </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="10"
-                          step="1"
-                          value={form.transition_difficulty ?? 4}
-                          onChange={(e) => setForm((prev) => ({ ...prev, transition_difficulty: Number(e.target.value) }))}
+                  {currentStep.description ? <p className="muted step-description">{currentStep.description}</p> : null}
+
+                  {step === 'required-info' ? (
+                    <div className="required-info-layout">
+                      <div className="question-group required-info-panel">
+                        <h4>核心状态</h4>
+                        <label>
+                          <FieldLabel text="今天感官过载" tone="required" />
+                          <select
+                            className="input"
+                            value={form.sensory_overload_level}
+                            onChange={(e) =>
+                              setForm((prev) => ({
+                                ...prev,
+                                sensory_overload_level: e.target.value as SensoryLevel
+                              }))
+                            }
+                          >
+                            <option value="none">无</option>
+                            <option value="light">轻微</option>
+                            <option value="medium">中等</option>
+                            <option value="heavy">严重</option>
+                          </select>
+                        </label>
+                        <fieldset className="segmented">
+                          <legend className="field-label">
+                            <span className="label">冲突 / 崩溃次数</span>
+                            <StepBadge tone="required" />
+                          </legend>
+                          {[
+                            { label: '0', value: 0 },
+                            { label: '1', value: 1 },
+                            { label: '2', value: 2 },
+                            { label: '3+', value: 3 }
+                          ].map((item) => (
+                            <label
+                              key={item.label}
+                              className={`option-chip ${form.meltdown_count === item.value ? 'active' : ''}`}
+                            >
+                              <input
+                                type="radio"
+                                name="meltdown_count"
+                                checked={form.meltdown_count === item.value}
+                                onChange={() => setForm((prev) => ({ ...prev, meltdown_count: item.value }))}
+                              />
+                              <span>{item.label}</span>
+                            </label>
+                          ))}
+                        </fieldset>
+                        <label className="range-field">
+                          <div className="field-head">
+                            <FieldLabel text="过渡难度" tone="required" />
+                            <strong>{form.transition_difficulty ?? 4} / 10</strong>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="10"
+                            step="1"
+                            value={form.transition_difficulty ?? 4}
+                            onChange={(e) =>
+                              setForm((prev) => ({ ...prev, transition_difficulty: Number(e.target.value) }))
+                            }
+                          />
+                        </label>
+                        <fieldset className="segmented">
+                          <legend className="field-label">
+                            <span className="label">今日可用支持</span>
+                            <StepBadge tone="required" />
+                          </legend>
+                          {[
+                            { label: '无', value: 'none' },
+                            { label: '有 1 人', value: 'one' },
+                            { label: '有 2 人+', value: 'two_plus' }
+                          ].map((item) => (
+                            <label
+                              key={item.value}
+                              className={`option-chip ${form.support_available === item.value ? 'active' : ''}`}
+                            >
+                              <input
+                                type="radio"
+                                name="support_available"
+                                checked={form.support_available === item.value}
+                                onChange={() =>
+                                  setForm((prev) => ({ ...prev, support_available: item.value as SupportLevel }))
+                                }
+                              />
+                              <span>{item.label}</span>
+                            </label>
+                          ))}
+                        </fieldset>
+                      </div>
+
+                      <div className="question-group required-info-panel">
+                        <h4>今日安排</h4>
+                        <TagSelector
+                          label="今天的特别安排（必填）"
+                          values={form.today_activities}
+                          options={activityOptions}
+                          onChange={(next) => setForm((prev) => ({ ...prev, today_activities: next }))}
+                          customPlaceholder="补充今日安排"
+                          variant="pill"
                         />
-                      </label>
-                      <fieldset className="segmented">
-                        <legend className="field-label">
-                          <span className="label">今日可用支持</span>
-                          <StepBadge tone="required" />
-                        </legend>
-                        {[
-                          { label: '无', value: 'none' },
-                          { label: '有 1 人', value: 'one' },
-                          { label: '有 2 人+', value: 'two_plus' }
-                        ].map((item) => (
-                          <label key={item.value} className={`option-chip ${form.support_available === item.value ? 'active' : ''}`}>
-                            <input
-                              type="radio"
-                              name="support_available"
-                              checked={form.support_available === item.value}
-                              onChange={() => setForm((prev) => ({ ...prev, support_available: item.value as SupportLevel }))}
-                            />
-                            <span>{item.label}</span>
-                          </label>
-                        ))}
-                      </fieldset>
+                        <TagSelector
+                          label="今天的学习 / 训练任务（必填）"
+                          values={form.today_learning_tasks}
+                          options={learningTaskOptions}
+                          onChange={(next) => setForm((prev) => ({ ...prev, today_learning_tasks: next }))}
+                          customPlaceholder="补充训练任务"
+                          variant="pill"
+                        />
+                      </div>
                     </div>
-
-                    <div className="question-group required-info-panel">
-                      <h4>今日安排</h4>
-                      <TagSelector
-                        label="今天的特别安排（必填）"
-                        values={form.today_activities}
-                        options={activityOptions}
-                        onChange={(next) => setForm((prev) => ({ ...prev, today_activities: next }))}
-                        customPlaceholder="补充今日安排"
-                        variant="pill"
-                      />
-                      <TagSelector
-                        label="今天的学习 / 训练任务（必填）"
-                        values={form.today_learning_tasks}
-                        options={learningTaskOptions}
-                        onChange={(next) => setForm((prev) => ({ ...prev, today_learning_tasks: next }))}
-                        customPlaceholder="补充训练任务"
-                        variant="pill"
-                      />
-                    </div>
-                  </div>
-                ) : null}
+                  ) : null}
 
                 {step === 'child-details' ? (
                   <>
@@ -415,22 +430,36 @@ export function CheckinCard({ open, date, submitting, initialValues, onClose, on
               </>
             ) : null}
 
-            <div className="checkin-actions">
-              {previousStep ? (
-                <button className="btn secondary" type="button" onClick={() => setStep(previousStep.id)}>
-                  上一步
-                </button>
-              ) : (
-                <button className="btn secondary" type="button" onClick={() => setStep('intro')}>
-                  返回
-                </button>
-              )}
-
-              {step === 'required-info' ? (
-                <>
-                  <button className="btn secondary" type="button" onClick={() => setStep('child-details')}>
-                    继续补充可选信息
+              <div className="checkin-actions">
+                {previousStep ? (
+                  <button className="btn secondary" type="button" onClick={() => setStep(previousStep.id)}>
+                    上一步
                   </button>
+                ) : (
+                  <button className="btn secondary" type="button" onClick={() => setStep('intro')}>
+                    返回
+                  </button>
+                )}
+
+                {step === 'required-info' ? (
+                  <>
+                    <button className="btn secondary" type="button" onClick={() => setStep('child-details')}>
+                      继续补充可选信息
+                    </button>
+                    <button
+                      className="btn"
+                      type="button"
+                      disabled={submitting}
+                      onClick={() => onSubmit(buildCheckinPayload({ date, ...form }))}
+                    >
+                      {submitting ? '生成中...' : '完成签到'}
+                    </button>
+                  </>
+                ) : nextStep ? (
+                  <button className="btn" type="button" onClick={() => setStep(nextStep.id)}>
+                    继续
+                  </button>
+                ) : (
                   <button
                     className="btn"
                     type="button"
@@ -439,24 +468,11 @@ export function CheckinCard({ open, date, submitting, initialValues, onClose, on
                   >
                     {submitting ? '生成中...' : '完成签到'}
                   </button>
-                </>
-              ) : nextStep ? (
-                <button className="btn" type="button" onClick={() => setStep(nextStep.id)}>
-                  继续
-                </button>
-              ) : (
-                <button
-                  className="btn"
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => onSubmit(buildCheckinPayload({ date, ...form }))}
-                >
-                  {submitting ? '生成中...' : '完成签到'}
-                </button>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>,
     document.body

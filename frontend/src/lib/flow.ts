@@ -21,19 +21,19 @@ export interface CareTabMeta {
 }
 
 export const careTabs: CareTabMeta[] = [
-  { key: 'today', label: '今天', hint: '先签到，再做今天最重要的一件事' },
-  { key: 'scripts', label: '高摩擦', hint: '一旦卡住，立刻进入三步支援' },
-  { key: 'plan', label: '长期训练跟踪', hint: '看优先能力、今日任务和长期进度' },
+  { key: 'today', label: '首页', hint: '主入口：先让系统判断今天先做什么，再决定要不要分流' },
+  { key: 'scripts', label: '高摩擦支持', hint: '次入口：已知现场卡住时，再直接进入预设和三步支援' },
+  { key: 'plan', label: '训练方案', hint: '次入口：已知要看计划时，再直接查看今天任务和重点' },
   { key: 'review', label: '复盘', hint: '做完后补结果、触发器和下次保留的一件事' },
-  { key: 'family', label: '家庭', hint: '先看关键提醒，需要时再改详细档案' }
+  { key: 'family', label: '家庭档案', hint: '查看关键提醒，需要时再改详细档案' }
 ];
 
 const ACTION_FLOW_STORAGE_KEY = 'care_os_action_flow_context';
 
 const sourceLabelMap: Record<ActionSource, string> = {
   today: '今日行动',
-  scripts: '高摩擦支援',
-  plan: '长期训练跟踪'
+  scripts: '高摩擦支持',
+  plan: '训练方案'
 };
 
 const scenarioLabelMap: Record<ReviewScenario | 'meltdown', string> = {

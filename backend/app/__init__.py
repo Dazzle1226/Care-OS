@@ -1,1 +1,1 @@
-"""Care OS backend package."""
+"""Hertz backend package."""

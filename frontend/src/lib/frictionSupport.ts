@@ -2,6 +2,8 @@ import type { ActionFlowContext } from './flow.ts';
 import { sanitizeDisplayText } from './displayText.ts';
 import type { FrictionScenario, FrictionSupportGenerateResponse } from './types.ts';
 
+export const CUSTOM_FRICTION_SCENARIO_VALUE = '__custom__';
+
 export const frictionScenarioOptions = [
   { value: 'transition', label: '过渡' },
   { value: 'bedtime', label: '睡前' },
@@ -23,6 +25,26 @@ export function normalizeFrictionScenario(value?: string | null): FrictionScenar
     return value;
   }
   return 'transition';
+}
+
+export function resolveFrictionScenarioSelection(value: string): {
+  scenarioSelection: FrictionScenario | typeof CUSTOM_FRICTION_SCENARIO_VALUE;
+  scenario: FrictionScenario | null;
+  shouldResetCustomScenarioName: boolean;
+} {
+  if (value === CUSTOM_FRICTION_SCENARIO_VALUE) {
+    return {
+      scenarioSelection: CUSTOM_FRICTION_SCENARIO_VALUE,
+      scenario: null,
+      shouldResetCustomScenarioName: false
+    };
+  }
+
+  return {
+    scenarioSelection: normalizeFrictionScenario(value),
+    scenario: normalizeFrictionScenario(value),
+    shouldResetCustomScenarioName: true
+  };
 }
 
 function normalizeReviewScenario(value: FrictionScenario): ActionFlowContext['scenario'] {

@@ -17,6 +17,8 @@ from app.schemas.domain import (
     FrictionSupportPlan,
     FrictionSupportStep,
     MicroRespiteGenerateRequest,
+    PlanMessage,
+    RetrievalEvidenceBundle,
     SignalOutput,
 )
 from app.services.retrieval import RetrievalService
@@ -63,16 +65,18 @@ class FrictionAgent:
         family: Family,
         signal: SignalOutput,
         payload: FrictionSupportGenerateRequest,
+        cards: list[StrategyCard] | None = None,
+        evidence_bundle: RetrievalEvidenceBundle | None = None,
     ) -> FrictionSupportPlan:
         profile = family.child_profile
         state = self._derive_state(payload, signal)
-        cards = self._retrieve_cards(db=db, family=family, profile=profile, payload=payload, state=state)
-        if not cards:
+        selected_cards = cards or self._retrieve_cards(db=db, family=family, profile=profile, payload=payload, state=state)
+        if not selected_cards:
             raise ValueError("No friction support cards available")
 
         respite = self._build_respite_suggestion(db=db, family=family, signal=signal, payload=payload)
-        action_plan = self._action_plan(cards=cards, profile=profile, payload=payload, state=state)
-        donts = self._donts(cards=cards, profile=profile, state=state)
+        action_plan = self._action_plan(cards=selected_cards, profile=profile, payload=payload, state=state)
+        donts = self._donts(cards=selected_cards, profile=profile, state=state)
         say_this = self._say_this(action_plan=action_plan, state=state)
         exit_plan = self._exit_plan(profile=profile, payload=payload, state=state)
         low_stim_mode = self._low_stim_mode(profile=profile, payload=payload, state=state)
@@ -83,6 +87,16 @@ class FrictionAgent:
             situation_summary=self._situation_summary(payload, signal),
             child_signals=self._child_signals(payload),
             caregiver_signals=self._caregiver_signals(payload),
+            why_this_plan=self._why_this_plan(
+                db=db,
+                cards=selected_cards,
+                profile=profile,
+                payload=payload,
+                signal=signal,
+                state=state,
+                evidence_bundle=evidence_bundle,
+            ),
+            excluded_actions=self._excluded_actions(profile=profile, payload=payload, state=state),
             action_plan=action_plan,
             donts=donts,
             say_this=say_this,
@@ -100,11 +114,12 @@ class FrictionAgent:
                 low_stim_mode=low_stim_mode,
             ),
             respite_suggestion=respite,
-            personalized_strategies=self._personalized_strategies(db=db, cards=cards, profile=profile, payload=payload),
-            school_message=self._school_message(cards=cards, profile=profile, payload=payload),
+            personalized_strategies=self._personalized_strategies(db=db, cards=selected_cards, profile=profile, payload=payload),
+            school_message=self._school_message(cards=selected_cards, profile=profile, payload=payload),
+            handoff_messages=self._handoff_messages(cards=selected_cards, profile=profile, payload=payload, state=state),
             feedback_prompt="执行 5-10 分钟后告诉我：孩子是否更稳定、你是否更能跟住方案；系统会据此调整下次推荐顺序。",
-            citations=[card.card_id for card in cards],
-            source_card_ids=[card.card_id for card in cards],
+            citations=[card.card_id for card in selected_cards],
+            source_card_ids=[card.card_id for card in selected_cards],
         )
 
     def _derive_state(self, payload: FrictionSupportGenerateRequest, signal: SignalOutput) -> FrictionState:
@@ -199,6 +214,71 @@ class FrictionAgent:
             f"信心 {payload.confidence_to_follow_plan:g}/10，睡眠 {payload.caregiver_sleep_quality:g}/10",
             self.support_labels[payload.support_available],
         ]
+
+    def _why_this_plan(
+        self,
+        db: Session,
+        cards: list[StrategyCard],
+        profile: ChildProfile | None,
+        payload: FrictionSupportGenerateRequest,
+        signal: SignalOutput,
+        state: FrictionState,
+        evidence_bundle: RetrievalEvidenceBundle | None = None,
+    ) -> list[str]:
+        if evidence_bundle is not None and evidence_bundle.selection_reasons:
+            return self._unique_lines(list(evidence_bundle.selection_reasons), limit=4)
+
+        reasons: list[str] = []
+        if state.low_stim_only:
+            reasons.append("当前孩子已接近过载或升级，系统优先给低刺激、可快速退场的动作。")
+        elif signal.risk_level == "yellow":
+            reasons.append("近几天负荷偏高，系统优先选择能先稳住现场、再推进一步的方案。")
+        else:
+            reasons.append("当前仍可推进，但系统只保留最短三步，避免现场信息过载。")
+
+        if payload.support_available == "none":
+            reasons.append("当前无人可接手，系统优先保留单人也能执行的短句和退场动作。")
+        elif payload.support_available == "one":
+            reasons.append("当前只有 1 位支持者，系统优先选择容易交接、不依赖多人配合的做法。")
+        else:
+            reasons.append("当前有人可接手，系统保留了更容易分段交接的动作顺序。")
+
+        history = self._history_effect_map(db=db, family_id=payload.family_id)
+        positive = next((card for card in cards if history.get(card.card_id, 0.0) > 0.5), None)
+        negative = next((card for card in cards if history.get(card.card_id, 0.0) < 0), None)
+        if positive is not None:
+            reasons.append(f"历史反馈显示“{positive.title}”这类做法更常有效，所以这次继续排在前面。")
+        elif negative is not None:
+            reasons.append(f"过去“{negative.title}”这类做法反馈一般，所以这次只保留可快速退出的版本。")
+
+        profile_donts = getattr(profile, "donts", [])
+        if profile_donts:
+            reasons.append(f"系统已对照档案禁忌“{profile_donts[0]}”过滤不合适动作。")
+        return self._unique_lines(reasons, limit=4)
+
+    def _excluded_actions(
+        self,
+        profile: ChildProfile | None,
+        payload: FrictionSupportGenerateRequest,
+        state: FrictionState,
+    ) -> list[str]:
+        exclusions: list[str] = []
+        donts = getattr(profile, "donts", [])
+        if any("触" in item or "碰" in item for item in donts):
+            exclusions.append("已排除身体介入类做法：档案标记了不可触碰。")
+        if any("大声" in item or "吼" in item for item in donts):
+            exclusions.append("已排除提高音量或连续催促：档案标记了不可大声。")
+        if any("追问" in item or "为什么" in item for item in donts):
+            exclusions.append("已排除追问原因和长解释：这会把孩子重新推回对抗。")
+        if state.low_stim_only:
+            exclusions.append("已排除继续推进原任务：当前先保安全、降刺激和可退出。")
+        if payload.meltdown_count >= 2 or payload.child_state == "meltdown":
+            exclusions.append("已排除需要连续配合的训练式做法：当前状态更适合先退场恢复。")
+        if payload.support_available == "none":
+            exclusions.append("已排除依赖多人接手的方案：当前现场只有一位照护者。")
+        if len(exclusions) < 2:
+            exclusions.append("已排除临时加码和多步命令：当前只保留最短三步动作。")
+        return self._unique_lines(exclusions, limit=4)
 
     @staticmethod
     def _clean_step_text(text: str) -> str:
@@ -498,3 +578,39 @@ class FrictionAgent:
             f"{teacher_script} 若出现升级，请先降噪、给两个选项，并允许去 {soothing_place} 缓冲 5-10 分钟。"
             f"{env_note}"
         ).strip()
+
+    def _handoff_messages(
+        self,
+        cards: list[StrategyCard],
+        profile: ChildProfile | None,
+        payload: FrictionSupportGenerateRequest,
+        state: FrictionState,
+    ) -> list[PlanMessage]:
+        scenario_label = self._preset_label(payload)
+        soothing_place = self._pick(getattr(profile, "soothing_methods", []), "安静角落")
+        caregiver_message = (
+            f"现在先按 {scenario_label} 行动卡做：先停住当前要求，只给一个边界和两个选择；"
+            f"如果 5 分钟内还在升级，就直接转去 {soothing_place}，不要继续讲道理。"
+        )
+        supporter_message = (
+            f"如果你现在接手，请先复述同一句短指令，不要换说法；"
+            f"当前目标不是把事情做完，而是先陪孩子回到能跟上的状态。"
+        )
+        if payload.support_available == "none":
+            supporter_message = (
+                f"如果有人能临时接手，请只帮忙清场、降噪或把其他任务拿走；"
+                f"主沟通者仍保持 1 位，避免多人同时说话。"
+            )
+        teacher_message = self._school_message(cards=cards, profile=profile, payload=payload)
+
+        messages = [
+            PlanMessage(target="family", text=caregiver_message),
+            PlanMessage(target="supporter", text=supporter_message),
+            PlanMessage(target="teacher", text=teacher_message),
+        ]
+        if state.low_stim_only:
+            messages[0].text = (
+                f"现在先按低刺激模式处理 {scenario_label}：减少口头解释，先保安全和陪伴；"
+                f"若孩子继续升级，直接转去 {soothing_place}，暂停原任务。"
+            )
+        return messages

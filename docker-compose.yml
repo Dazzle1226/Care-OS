@@ -1,12 +1,28 @@
 services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: care-os-postgres
+    environment:
+      POSTGRES_DB: care_os
+      POSTGRES_USER: careos
+      POSTGRES_PASSWORD: careos
+    ports:
+      - "5432:5432"
+    volumes:
+      - care-os-postgres-data:/var/lib/postgresql/data
+
   backend:
     build:
       context: ./backend
     container_name: care-os-backend
+    depends_on:
+      - postgres
     environment:
-      CARE_OS_DATABASE_URL: sqlite:////app/data/care_os.db
+      CARE_OS_DATABASE_BACKEND: postgres
+      CARE_OS_DATABASE_URL: postgresql+psycopg://careos:careos@postgres:5432/care_os
       CARE_OS_FORCE_RULE_FALLBACK: "false"
-      CARE_OS_EMBEDDING_PROVIDER: hash
+      CARE_OS_EMBEDDING_PROVIDER: auto
+      CARE_OS_EMBEDDING_FALLBACK_PROVIDER: hash
     volumes:
       - ./backend/data:/app/data
       - ./backend/seed:/app/seed
@@ -23,3 +39,6 @@ services:
       VITE_API_BASE_URL: http://localhost:8000/api
     ports:
       - "4173:4173"
+
+volumes:
+  care-os-postgres-data:

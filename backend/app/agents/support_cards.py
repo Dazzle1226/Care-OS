@@ -315,7 +315,16 @@ class SupportCardAgent:
             ),
         ]
 
-    def generate_cards(self, family: Family, profile: ChildProfile) -> list[OnboardingSupportCard]:
+    def generate_cards(
+        self,
+        family: Family,
+        profile: ChildProfile,
+        *,
+        prefer_llm: bool = True,
+    ) -> list[OnboardingSupportCard]:
+        if not prefer_llm:
+            return self._fallback_cards(family, profile)
+
         try:
             return self._attempt_llm_cards(family, profile)
         except (LLMUnavailableError, ValueError, TypeError, json.JSONDecodeError):

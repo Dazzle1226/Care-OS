@@ -154,6 +154,26 @@ export interface ScriptGenerateResponse {
   safety_block?: SafetyBlockResponse;
 }
 
+export interface ContextSignalRead {
+  signal_key: string;
+  signal_label: string;
+  signal_value: string;
+  confidence: number;
+}
+
+export interface MultimodalIngestionResponse {
+  ingestion_id: number;
+  family_id: number;
+  source_type: 'document' | 'audio';
+  content_name: string;
+  raw_excerpt: string;
+  normalized_summary: string;
+  context_signals: ContextSignalRead[];
+  confidence: number;
+  manual_review_required: boolean;
+  created_at: string;
+}
+
 export type FrictionScenario = 'transition' | 'bedtime' | 'homework' | 'outing' | 'meltdown';
 export type FrictionChildState =
   | 'emotional_wave'
@@ -198,6 +218,8 @@ export interface FrictionSupportPlan {
   situation_summary: string;
   child_signals: string[];
   caregiver_signals: string[];
+  why_this_plan: string[];
+  excluded_actions: string[];
   action_plan: FrictionSupportStep[];
   donts: string[];
   say_this: string[];
@@ -208,6 +230,7 @@ export interface FrictionSupportPlan {
   respite_suggestion: FrictionRespiteSuggestion;
   personalized_strategies: string[];
   school_message: string;
+  handoff_messages: PlanMessage[];
   feedback_prompt: string;
   citations: string[];
   source_card_ids: string[];
@@ -219,6 +242,345 @@ export interface FrictionSupportGenerateResponse {
   risk?: SignalOutput;
   support?: FrictionSupportPlan;
   safety_block?: SafetyBlockResponse;
+}
+
+export interface CandidateScore {
+  card_id: string;
+  title: string;
+  total_score: number;
+  semantic_score: number;
+  lexical_score: number;
+  scenario_match: number;
+  profile_fit: number;
+  historical_effect: number;
+  policy_weight: number;
+  execution_cost_bonus: number;
+  risk_penalty: number;
+  taboo_conflict_penalty: number;
+  selected: boolean;
+  why_selected?: string[];
+  why_not_selected?: string[];
+  selected_chunk_ids?: string[];
+  hard_filter_tags?: string[];
+  personalization_notes?: string[];
+}
+
+export interface RetrievalQueryPlan {
+  intent: 'plan' | 'script' | 'friction' | 'report';
+  scenario: string;
+  intensity: string;
+  family_id: number;
+  profile_facets: string[];
+  recent_context_signals: string[];
+  hard_exclusions: string[];
+  time_window: string;
+  raw_query_text: string;
+}
+
+export interface RetrievalSelectedSource {
+  source_id: string;
+  source_type: string;
+  title: string;
+  scope: 'global' | 'segment' | 'family';
+}
+
+export interface RetrievalFeatureAttribution {
+  target_id: string;
+  target_kind: 'card' | 'chunk' | 'family_memory';
+  summary: string;
+  contribution: number;
+}
+
+export interface RetrievalEvidenceBundle {
+  selected_card_ids: string[];
+  selected_evidence_unit_ids: string[];
+  selected_chunk_ids?: string[];
+  candidate_scores: CandidateScore[];
+  selection_reasons: string[];
+  rejected_reasons: string[];
+  counter_evidence: string[];
+  coverage_scores: Record<string, number>;
+  confidence_score: number;
+  insufficient_evidence: boolean;
+  missing_dimensions: string[];
+  ranking_summary: string;
+  query_plan?: RetrievalQueryPlan | null;
+  selected_sources?: RetrievalSelectedSource[];
+  feature_attribution?: RetrievalFeatureAttribution[];
+  personalization_applied?: string[];
+  hard_filtered_reasons?: string[];
+  coverage_gaps?: string[];
+  knowledge_versions?: string[];
+  retrieval_latency_ms?: number;
+  retrieval_run_id?: number | null;
+}
+
+export interface DecisionGraphStageRun {
+  stage:
+    | 'context_ingestion'
+    | 'context_fusion'
+    | 'goal_interpretation'
+    | 'signal_eval'
+    | 'emotion_eval'
+    | 'evidence_recall'
+    | 'task_decomposition'
+    | 'candidate_generation'
+    | 'candidate_simulation'
+    | 'safety_critic'
+    | 'evidence_critic'
+    | 'critic_reflection'
+    | 'executor'
+    | 'replanner'
+    | 'coordination'
+    | 'policy_adjust_hint'
+    | 'memory_learning'
+    | 'finalizer';
+  status: 'success' | 'blocked' | 'fallback' | 'skipped';
+  input_ref: string;
+  output: Record<string, unknown>;
+  latency_ms: number;
+  fallback_used: boolean;
+  retry_count: number;
+}
+
+export interface V2FrictionSupportGenerateResponse extends FrictionSupportGenerateResponse {
+  trace_id: number;
+  stage_summaries: DecisionGraphStageRun[];
+  fallback_summary?: string | null;
+  insufficient_evidence: boolean;
+  evidence_bundle?: RetrievalEvidenceBundle;
+}
+
+export interface EmotionAssessment {
+  child_emotion: 'calm' | 'fragile' | 'escalating' | 'meltdown_risk';
+  caregiver_emotion: 'calm' | 'strained' | 'anxious' | 'overloaded';
+  child_overload_level: 'low' | 'medium' | 'high';
+  caregiver_overload_level: 'low' | 'medium' | 'high';
+  confidence_drift: 'stable' | 'dropping' | 'critical';
+  recommended_adjustments: string[];
+  confidence: number;
+  reasoning: string[];
+}
+
+export interface AgentProposal {
+  proposal_id: string;
+  agent_name: string;
+  proposal_kind: 'continue' | 'lighter' | 'handoff' | 'block';
+  payload: Record<string, unknown>;
+  confidence: number;
+  priority: number;
+  rationale: string;
+  depends_on: string[];
+}
+
+export interface CoordinationDecision {
+  selected_proposal_id: string;
+  alternative_proposal_ids: string[];
+  decision_reason: string;
+  weight_summary: string[];
+  replan_triggers: string[];
+  active_mode: 'continue' | 'lighter' | 'handoff' | 'blocked';
+  now_step: string;
+  now_script: string;
+  next_if_not_working: string;
+  summary: string;
+}
+
+export interface CriticReview {
+  critic: 'safety' | 'evidence' | 'plan';
+  decision: 'pass' | 'revise' | 'clarify' | 'needs_clarification' | 'fallback_ok' | 'block';
+  blocked: boolean;
+  issue_type?: 'missing_evidence' | 'insufficient_coverage' | 'citation_mismatch' | 'safety' | 'plan_quality' | null;
+  reasons: string[];
+  summary: string;
+}
+
+export interface GoalSpec {
+  goal_id: string;
+  title: string;
+  success_definition: string;
+  constraints: string[];
+}
+
+export interface TaskNode {
+  task_id: string;
+  parent_task_id?: string | null;
+  goal: string;
+  kind: 'stabilize' | 'co_regulate' | 'transition' | 'handoff' | 'exit' | 'observe';
+  priority: number;
+  status: 'pending' | 'active' | 'completed' | 'failed' | 'dropped';
+  preconditions: string[];
+  success_signals: string[];
+  failure_signals: string[];
+  fallback_task_ids: string[];
+  instructions: string[];
+  say_this: string[];
+  citations: string[];
+  why_now: string;
+  depth: number;
+}
+
+export interface ReplanTrigger {
+  trigger_type:
+    | 'session_start'
+    | 'no_improvement'
+    | 'caregiver_overloaded'
+    | 'child_escalating'
+    | 'support_arrived'
+    | 'user_requests_lighter'
+    | 'user_requests_handoff'
+    | 'new_context_ingested';
+  source_event: string;
+  summary: string;
+}
+
+export interface ExecutionState {
+  active_task_id?: string | null;
+  completed_task_ids: string[];
+  failed_task_ids: string[];
+  dropped_task_ids: string[];
+  latest_event?: ReplanTrigger | null;
+  active_mode: 'continue' | 'lighter' | 'handoff' | 'blocked';
+  latest_critic_verdicts: string[];
+}
+
+export interface PlanRevisionDiff {
+  trigger: ReplanTrigger;
+  affected_task_ids: string[];
+  dropped_task_ids: string[];
+  added_task_ids: string[];
+  active_task_before?: string | null;
+  active_task_after?: string | null;
+  summary: string;
+}
+
+export interface PlanRevision {
+  revision_no: number;
+  parent_revision_no?: number | null;
+  goal: GoalSpec;
+  task_tree: TaskNode[];
+  execution_state: ExecutionState;
+  critic_verdicts: CriticReview[];
+  revision_diff: PlanRevisionDiff;
+}
+
+export interface AdaptiveSession {
+  session_id: number;
+  incident_id?: number | null;
+  family_id: number;
+  chain: 'friction_support' | 'training_support';
+  status: 'active' | 'blocked' | 'closed';
+  current_state_version: number;
+  active_plan_summary: Record<string, unknown>;
+  next_check_in_hint: string;
+  last_trace_id?: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SessionEvent {
+  event_id: number;
+  source_type: 'text' | 'audio' | 'document' | 'system' | 'user_action';
+  event_kind:
+    | 'text_update'
+    | 'audio_update'
+    | 'status_check'
+    | 'request_lighter'
+    | 'request_handoff'
+    | 'no_improvement'
+    | 'caregiver_overloaded'
+    | 'child_escalating'
+    | 'support_arrived'
+    | 'new_context_ingested'
+    | 'confirm'
+    | 'close';
+  raw_text: string;
+  ingestion_id?: number | null;
+  replanned: boolean;
+  created_at: string;
+}
+
+export interface DecisionState {
+  session_id: number;
+  family_id: number;
+  chain: 'friction_support' | 'training_support';
+  state_version: number;
+  latest_inputs: Record<string, unknown>;
+  context_signals: ContextSignalRead[];
+  risk_assessment?: SignalOutput | null;
+  emotion_assessment?: EmotionAssessment | null;
+  retrieval_bundle?: RetrievalEvidenceBundle | null;
+  coordination?: CoordinationDecision | null;
+  active_plan_summary: Record<string, unknown>;
+  used_memory_signals: string[];
+  adaptation_history: string[];
+  trace_summary: DecisionGraphStageRun[];
+}
+
+export interface V3FrictionSessionStartResponse {
+  blocked: boolean;
+  session?: AdaptiveSession;
+  decision_state?: DecisionState | null;
+  risk?: SignalOutput;
+  emotion?: EmotionAssessment;
+  support?: FrictionSupportPlan;
+  coordination?: CoordinationDecision;
+  safety_block?: SafetyBlockResponse;
+  evidence_bundle?: RetrievalEvidenceBundle;
+  trace_id?: number | null;
+  trace_summary: DecisionGraphStageRun[];
+  plan_revision?: PlanRevision;
+  active_task?: TaskNode | null;
+  task_tree: TaskNode[];
+  execution_state?: ExecutionState | null;
+  replan_reason?: string | null;
+  critic_verdicts: CriticReview[];
+  revision_diff?: PlanRevisionDiff | null;
+}
+
+export interface V3FrictionSessionEventResponse {
+  session: AdaptiveSession;
+  event: SessionEvent;
+  replanned: boolean;
+  changed_fields: string[];
+  decision_state?: DecisionState | null;
+  risk?: SignalOutput;
+  emotion?: EmotionAssessment;
+  support?: FrictionSupportPlan;
+  coordination?: CoordinationDecision;
+  evidence_bundle?: RetrievalEvidenceBundle;
+  trace_id?: number | null;
+  trace_summary: DecisionGraphStageRun[];
+  plan_revision?: PlanRevision;
+  active_task?: TaskNode | null;
+  task_tree: TaskNode[];
+  execution_state?: ExecutionState | null;
+  replan_reason?: string | null;
+  critic_verdicts: CriticReview[];
+  revision_diff?: PlanRevisionDiff | null;
+}
+
+export interface V3FrictionSessionConfirmResponse {
+  session: AdaptiveSession;
+  decision_state?: DecisionState | null;
+  coordination: CoordinationDecision;
+  support: FrictionSupportPlan;
+  trace_id?: number | null;
+  trace_summary: DecisionGraphStageRun[];
+  plan_revision?: PlanRevision;
+  active_task?: TaskNode | null;
+  task_tree: TaskNode[];
+  execution_state?: ExecutionState | null;
+  replan_reason?: string | null;
+  critic_verdicts: CriticReview[];
+  revision_diff?: PlanRevisionDiff | null;
+}
+
+export interface V3FrictionSessionCloseResponse {
+  session: AdaptiveSession;
+  decision_state?: DecisionState | null;
+  learning_summary: string[];
+  updated_weights: Record<string, number>;
 }
 
 export interface FrictionSupportFeedbackResponse {
@@ -294,6 +656,7 @@ export interface TrainingPriorityDomainCard {
   has_today_task: boolean;
   current_status: string;
   improvement_value: string;
+  coordination_hint: string;
 }
 
 export interface DailyTrainingTask {
@@ -311,6 +674,8 @@ export interface DailyTrainingTask {
   materials: string[];
   fallback_plan: string;
   coaching_tip: string;
+  coordination_mode: 'ready' | 'lighter' | 'pause';
+  why_today: string;
   status: TrainingTaskStatus;
   reminder_status: TrainingReminderStatus;
   reminder_at?: string | null;
@@ -356,6 +721,9 @@ export interface TrainingDashboardSummary {
   priority_domain_count: number;
   streak_days: number;
   current_load_level: TrainingLoadLevel;
+  readiness_status: 'ready' | 'lighter' | 'pause';
+  readiness_reason: string;
+  recommended_action: string;
   summary_text: string;
 }
 
@@ -414,6 +782,35 @@ export interface TrainingReminderResponse {
   reminder_status: TrainingReminderStatus;
   remind_at?: string | null;
   dashboard: TrainingDashboard;
+}
+
+export interface V3TrainingSessionStartResponse {
+  session: AdaptiveSession;
+  decision_state: DecisionState;
+  dashboard: TrainingDashboard;
+  coordination: CoordinationDecision;
+  trace_id?: number | null;
+  trace_summary: DecisionGraphStageRun[];
+}
+
+export interface V3TrainingSessionEventResponse {
+  session: AdaptiveSession;
+  event: SessionEvent;
+  replanned: boolean;
+  changed_fields: string[];
+  decision_state: DecisionState;
+  dashboard: TrainingDashboard;
+  coordination: CoordinationDecision;
+  trace_id?: number | null;
+  trace_summary: DecisionGraphStageRun[];
+}
+
+export interface V3TrainingSessionCloseResponse {
+  session: AdaptiveSession;
+  decision_state: DecisionState;
+  dashboard: TrainingDashboard;
+  learning_summary: string[];
+  updated_weights: Record<string, number>;
 }
 
 export interface FamilyRead {

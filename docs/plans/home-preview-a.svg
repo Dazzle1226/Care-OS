@@ -1,0 +1,194 @@
+<svg width="1600" height="980" viewBox="0 0 1600 980" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="184" y1="78" x2="1418" y2="908" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#171212"/>
+      <stop offset="0.6" stop-color="#231A19"/>
+      <stop offset="1" stop-color="#0F0C0C"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(802 308) rotate(90) scale(290 404)">
+      <stop stop-color="#FFE4C9" stop-opacity="0.98"/>
+      <stop offset="0.36" stop-color="#F3BF95" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#F3BF95" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="floor" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(804 780) rotate(90) scale(86 340)">
+      <stop stop-color="#E2B795" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#E2B795" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="centerFace" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FFF8F0"/>
+      <stop offset="1" stop-color="#ECD7C7"/>
+    </linearGradient>
+    <linearGradient id="topFace" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FFF1E4"/>
+      <stop offset="1" stop-color="#D8B8A0"/>
+    </linearGradient>
+    <linearGradient id="leftWing" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#7B5E51"/>
+      <stop offset="1" stop-color="#40312D"/>
+    </linearGradient>
+    <linearGradient id="rightWing" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#66544F"/>
+      <stop offset="1" stop-color="#332927"/>
+    </linearGradient>
+    <linearGradient id="cta" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#F7B27D"/>
+      <stop offset="1" stop-color="#D8795A"/>
+    </linearGradient>
+    <linearGradient id="quiet" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#D7EEE5"/>
+      <stop offset="1" stop-color="#BCD4CB"/>
+    </linearGradient>
+    <linearGradient id="review" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#EEDACC"/>
+      <stop offset="1" stop-color="#D1B8A7"/>
+    </linearGradient>
+    <filter id="frame" x="74" y="76" width="1452" height="832" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="30"/>
+      <feGaussianBlur stdDeviation="38"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.027451 0 0 0 0 0.0196078 0 0 0 0 0.0196078 0 0 0 0.66 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_0_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_0_1" result="shape"/>
+    </filter>
+    <filter id="centerShadow" x="300" y="124" width="1010" height="706" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="34"/>
+      <feGaussianBlur stdDeviation="28"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.054902 0 0 0 0 0.0392157 0 0 0 0 0.0352941 0 0 0 0.44 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_0_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_0_1" result="shape"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="980" fill="url(#bg)"/>
+  <ellipse cx="804" cy="316" rx="312" ry="266" fill="url(#spot)"/>
+  <ellipse cx="804" cy="780" rx="370" ry="90" fill="url(#floor)"/>
+  <ellipse cx="804" cy="812" rx="290" ry="34" fill="#050404" fill-opacity="0.46"/>
+
+  <g filter="url(#frame)">
+    <rect x="150" y="122" width="1300" height="716" rx="44" fill="white" fill-opacity="0.03"/>
+    <rect x="150.8" y="122.8" width="1298.4" height="714.4" rx="43.2" stroke="white" stroke-opacity="0.08" stroke-width="1.6"/>
+  </g>
+
+  <g opacity="0.12">
+    <path d="M360 760H1248" stroke="#8A6C5E" stroke-width="1.4"/>
+    <path d="M414 726H1194" stroke="#8A6C5E" stroke-opacity="0.72" stroke-width="1.2"/>
+    <path d="M468 696H1140" stroke="#8A6C5E" stroke-opacity="0.46" stroke-width="1.1"/>
+  </g>
+  <g opacity="0.14">
+    <path d="M560 804L706 650" stroke="#8A6C5E" stroke-width="1.4"/>
+    <path d="M634 804L748 650" stroke="#8A6C5E" stroke-width="1.4"/>
+    <path d="M708 804L790 650" stroke="#8A6C5E" stroke-width="1.4"/>
+    <path d="M782 804L832 650" stroke="#8A6C5E" stroke-width="1.4"/>
+    <path d="M856 804L874 650" stroke="#8A6C5E" stroke-width="1.4"/>
+    <path d="M930 804L916 650" stroke="#8A6C5E" stroke-width="1.4"/>
+    <path d="M1004 804L958 650" stroke="#8A6C5E" stroke-width="1.4"/>
+  </g>
+
+  <!-- Side wings deliberately behind the center -->
+  <g opacity="0.58">
+    <path d="M252 316L392 228V564L252 642V316Z" fill="url(#leftWing)"/>
+    <path d="M252 316L392 228" stroke="#C8A794" stroke-opacity="0.3" stroke-width="1.6"/>
+    <path d="M252 642L392 564" stroke="#A88673" stroke-opacity="0.24" stroke-width="1.6"/>
+  </g>
+  <g opacity="0.48">
+    <path d="M1218 228L1358 316V642L1218 564V228Z" fill="url(#rightWing)"/>
+    <path d="M1218 228L1358 316" stroke="#B3A39B" stroke-opacity="0.22" stroke-width="1.6"/>
+    <path d="M1218 564L1358 642" stroke="#8C7D76" stroke-opacity="0.18" stroke-width="1.6"/>
+  </g>
+
+  <g filter="url(#centerShadow)">
+    <path d="M404 292L534 186H1070L1200 292V590L1070 696H534L404 590V292Z" fill="url(#centerFace)"/>
+    <path d="M404 292L534 186H1070L1200 292V590L1070 696H534L404 590V292Z" stroke="white" stroke-opacity="0.58" stroke-width="1.8"/>
+    <path d="M534 186L632 230H1160L1070 186H534Z" fill="url(#topFace)"/>
+  </g>
+
+  <g opacity="0.9">
+    <path d="M404 292L534 186H1070L1200 292" stroke="#FFF6EE" stroke-opacity="0.42" stroke-width="2"/>
+    <path d="M404 590L534 696H1070L1200 590" stroke="#B7947D" stroke-opacity="0.18" stroke-width="2"/>
+  </g>
+
+  <!-- Occlusion mask effect: center body covers wings -->
+  <rect x="404" y="292" width="796" height="298" fill="white" fill-opacity="0.02"/>
+
+  <g opacity="0.96">
+    <rect x="564" y="232" width="160" height="30" rx="15" fill="#FCE7D4"/>
+    <text x="597" y="252" fill="#936651" font-family="SF Pro Display, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="0.16em">AI JUDGMENT</text>
+    <rect x="740" y="232" width="78" height="30" rx="15" fill="#FFF3E8"/>
+    <text x="766" y="252" fill="#A1725A" font-family="SF Pro Display, Helvetica, Arial, sans-serif" font-size="12" font-weight="700">LIVE</text>
+
+    <text x="564" y="372" fill="#231915" font-family="Georgia, Times New Roman, serif" font-size="84" font-weight="700">One clear</text>
+    <text x="564" y="458" fill="#231915" font-family="Georgia, Times New Roman, serif" font-size="84" font-weight="700">signal owns</text>
+    <text x="564" y="544" fill="#231915" font-family="Georgia, Times New Roman, serif" font-size="84" font-weight="700">the stage.</text>
+
+    <text x="564" y="604" fill="#6B584D" font-family="SF Pro Text, Helvetica, Arial, sans-serif" font-size="18" font-weight="500">
+      Front plane only. Side routes stay dim, shorter, and visibly behind.
+    </text>
+  </g>
+
+  <g opacity="0.98">
+    <circle cx="1014" cy="392" r="84" fill="url(#cta)"/>
+    <circle cx="1014" cy="392" r="126" stroke="#E8C19F" stroke-opacity="0.58" stroke-width="1.8"/>
+    <circle cx="1014" cy="392" r="162" stroke="#D6B198" stroke-opacity="0.24" stroke-width="1.4" stroke-dasharray="8 10"/>
+    <text x="978" y="370" fill="white" font-family="SF Pro Display, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="0.14em">LIVE HUB</text>
+    <text x="972" y="408" fill="white" font-family="Georgia, Times New Roman, serif" font-size="36" font-weight="700">AI</text>
+  </g>
+
+  <!-- Side wings content pushed back and dimmed -->
+  <g opacity="0.54">
+    <text x="286" y="380" fill="#C1A291" font-family="SF Pro Display, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="0.18em">LEFT WING</text>
+    <text x="286" y="438" fill="#F0DFD4" font-family="Georgia, Times New Roman, serif" font-size="30" font-weight="700">High friction</text>
+    <text x="286" y="474" fill="#F0DFD4" font-family="Georgia, Times New Roman, serif" font-size="30" font-weight="700">support</text>
+    <text x="286" y="526" fill="#D2B9AC" font-family="SF Pro Text, Helvetica, Arial, sans-serif" font-size="14" font-weight="500">Back plane. Less light.</text>
+  </g>
+
+  <g opacity="0.42">
+    <text x="1244" y="378" fill="#93B5AB" font-family="SF Pro Display, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="0.18em">RIGHT WING</text>
+    <text x="1244" y="432" fill="#E7F5F0" font-family="Georgia, Times New Roman, serif" font-size="26" font-weight="700">Training</text>
+    <text x="1244" y="464" fill="#E7F5F0" font-family="Georgia, Times New Roman, serif" font-size="26" font-weight="700">plan</text>
+    <text x="1244" y="514" fill="#B3CBC3" font-family="SF Pro Text, Helvetica, Arial, sans-serif" font-size="13" font-weight="500">Further back. Lower contrast.</text>
+  </g>
+
+  <g opacity="0.98">
+    <rect x="566" y="654" width="210" height="64" rx="32" fill="url(#cta)"/>
+    <text x="626" y="694" fill="white" font-family="SF Pro Text, Helvetica, Arial, sans-serif" font-size="20" font-weight="700">Open Today Flow</text>
+    <rect x="796" y="654" width="188" height="64" rx="32" fill="#FFF7F1" fill-opacity="0.9"/>
+    <rect x="796.8" y="654.8" width="186.4" height="62.4" rx="31.2" stroke="#E4CDBB" stroke-width="1.6"/>
+    <text x="848" y="694" fill="#7A6050" font-family="SF Pro Text, Helvetica, Arial, sans-serif" font-size="19" font-weight="700">View Side Pods</text>
+  </g>
+
+  <g opacity="0.95">
+    <rect x="568" y="742" width="176" height="88" rx="24" fill="#FFF7F0" fill-opacity="0.92"/>
+    <rect x="758" y="742" width="184" height="88" rx="24" fill="#FFF7F0" fill-opacity="0.82"/>
+    <rect x="956" y="742" width="184" height="88" rx="24" fill="#FFF7F0" fill-opacity="0.82"/>
+    <text x="594" y="770" fill="#9D7863" font-family="SF Pro Display, Helvetica, Arial, sans-serif" font-size="12" font-weight="700">STATE</text>
+    <text x="784" y="770" fill="#9D7863" font-family="SF Pro Display, Helvetica, Arial, sans-serif" font-size="12" font-weight="700">NEXT</text>
+    <text x="982" y="770" fill="#9D7863" font-family="SF Pro Display, Helvetica, Arial, sans-serif" font-size="12" font-weight="700">LOOP</text>
+    <text x="594" y="804" fill="#2F231D" font-family="SF Pro Text, Helvetica, Arial, sans-serif" font-size="18" font-weight="700">Awaiting signal</text>
+    <text x="784" y="804" fill="#2F231D" font-family="SF Pro Text, Helvetica, Arial, sans-serif" font-size="18" font-weight="700">Grow one action</text>
+    <text x="982" y="804" fill="#2F231D" font-family="SF Pro Text, Helvetica, Arial, sans-serif" font-size="18" font-weight="700">Wake review</text>
+  </g>
+
+  <!-- Background facilities pushed far back -->
+  <g opacity="0.74">
+    <rect x="238" y="740" width="198" height="94" rx="28" fill="url(#quiet)"/>
+    <text x="270" y="768" fill="#78988E" font-family="SF Pro Display, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em">CALM DOCK</text>
+    <text x="270" y="812" fill="#23322D" font-family="Georgia, Times New Roman, serif" font-size="30" font-weight="700">Micro respite</text>
+  </g>
+
+  <g opacity="0.66">
+    <rect x="1162" y="742" width="182" height="90" rx="28" fill="#EDE7FF" fill-opacity="0.64"/>
+    <text x="1190" y="770" fill="#897CA4" font-family="SF Pro Display, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em">FAMILY MEMORY</text>
+    <text x="1190" y="812" fill="#302A39" font-family="Georgia, Times New Roman, serif" font-size="26" font-weight="700">Profile behind</text>
+  </g>
+
+  <g opacity="0.82">
+    <rect x="666" y="854" width="276" height="56" rx="28" fill="url(#review)"/>
+    <text x="724" y="889" fill="#745B4B" font-family="Georgia, Times New Roman, serif" font-size="26" font-weight="700">Quick review wakes after action</text>
+  </g>
+
+  <text x="154" y="74" fill="#B39A8A" font-family="SF Pro Display, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="0.22em">CARE OS / HOME PREVIEW / A / V5</text>
+  <text x="1092" y="74" fill="#8A786D" font-family="SF Pro Text, Helvetica, Arial, sans-serif" font-size="13" font-weight="600">front stage dominates, wings retreat, facilities fall back</text>
+</svg>

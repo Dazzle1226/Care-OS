@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 
 import {
+  addTrainingSessionEventV3,
+  closeTrainingSessionV3,
   generateTrainingPlan,
   getCurrentTrainingPlan,
   getTrainingDomainDetail,
   scheduleTrainingReminder,
+  startTrainingSessionV3,
   submitTrainingFeedback
 } from '../lib/api';
 import { createActionFlowContext, type ActionFlowContext, type CareTab } from '../lib/flow';
+import { scheduleScrollWorkspaceToTop } from '../lib/scroll';
 import {
   buildCheckinCircles,
   buildProgressMoments,
@@ -17,6 +21,11 @@ import {
   type TrainingPlanEntry
 } from '../lib/trainingTracking';
 import type {
+  AdaptiveSession,
+  CoordinationDecision,
+  DecisionGraphStageRun,
+  DecisionState,
+  TrainingAdjustmentLogItem,
   DailyTrainingTask,
   TrainingChildResponse,
   TrainingCompletionStatus,
@@ -84,6 +93,21 @@ function inferReviewScenario(value?: string | null) {
   return 'transition';
 }
 
+function formatAdjustmentState(value: unknown) {
+  const text = String(value ?? '').trim();
+  if (!text) return '未记录';
+  if (text in stageLabel) return stageLabel[text as keyof typeof stageLabel];
+  if (text in difficultyLabel) return difficultyLabel[text as keyof typeof difficultyLabel];
+  return text;
+}
+
+function summarizeAdjustmentDelta(item: TrainingAdjustmentLogItem) {
+  return {
+    stage: `${formatAdjustmentState(item.before_state['stage'])} -> ${formatAdjustmentState(item.after_state['stage'])}`,
+    difficulty: `${formatAdjustmentState(item.before_state['difficulty'])} -> ${formatAdjustmentState(item.after_state['difficulty'])}`
+  };
+}
+
 function readAreaKeyFromHash() {
   if (typeof window === 'undefined') return null;
   const hash = window.location.hash;
@@ -139,6 +163,49 @@ const helpfulnessLabel = {
   not_helpful: '没帮助'
 } as const;
 
+const riskLevelLabel = {
+  green: '低风险',
+  yellow: '需要留意',
+  red: '高风险'
+} as const;
+
+const overloadLevelLabel = {
+  low: '低',
+  medium: '中',
+  high: '高'
+} as const;
+
+const emotionLabel = {
+  calm: '平稳',
+  fragile: '脆弱',
+  escalating: '正在升级',
+  meltdown_risk: '接近失控',
+  strained: '吃紧',
+  anxious: '焦虑',
+  overloaded: '过载'
+} as const;
+
+const readinessLabel = {
+  ready: '今天适合练',
+  lighter: '今天先降载练',
+  pause: '今天先不练'
+} as const;
+
+const readinessClassName = {
+  ready: 'review-notice',
+  lighter: 'review-notice',
+  pause: 'error'
+} as const;
+
+const coordinationModeLabel = {
+  ready: '按计划练',
+  continue: '按计划练',
+  lighter: '低负担版',
+  handoff: '准备交接',
+  blocked: '暂停正式训练',
+  pause: '暂停正式训练'
+} as const;
+
 const obstacleLabel = {
   none: '无明显困难',
   too_hard: '太难',
@@ -148,6 +215,11 @@ const obstacleLabel = {
   sensory_overload: '感官过载',
   unclear_steps: '步骤不清楚'
 } as const;
+
+function readOutputText(output: Record<string, unknown>, key: string) {
+  const value = output[key];
+  return typeof value === 'string' ? value : '';
+}
 
 const quickFeedbackOptions: Array<{
   key: string;
@@ -201,6 +273,11 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
   const [detailLoadingKey, setDetailLoadingKey] = useState<string | null>(null);
   const [submittingTaskId, setSubmittingTaskId] = useState<number | null>(null);
   const [remindingTaskId, setRemindingTaskId] = useState<number | null>(null);
+  const [trainingSession, setTrainingSession] = useState<AdaptiveSession | null>(null);
+  const [trainingDecisionState, setTrainingDecisionState] = useState<DecisionState | null>(null);
+  const [trainingCoordination, setTrainingCoordination] = useState<CoordinationDecision | null>(null);
+  const [trainingLearningSummary, setTrainingLearningSummary] = useState<string[]>([]);
+  const [sessionBusy, setSessionBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
 
@@ -210,6 +287,7 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
     : null;
   const selectedPlanEntries = selectedDetail ? buildTrainingPlanEntries(selectedDetail, selectedTask) : [];
   const activePlanEntry = selectedPlanEntries.find((item) => item.entry_id === activePlanEntryId) ?? null;
+  const recentAdaptations = trainingDecisionState?.adaptation_history.slice(-3).reverse() ?? [];
 
   useEffect(() => {
     let cancelled = false;
@@ -218,6 +296,10 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
       setDashboard(null);
       setDetailCache({});
       setSelectedAreaKey(null);
+      setTrainingSession(null);
+      setTrainingDecisionState(null);
+      setTrainingCoordination(null);
+      setTrainingLearningSummary([]);
       setError('');
       return () => {
         cancelled = true;
@@ -231,6 +313,10 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
         if (cancelled) return;
         setDashboard(data);
         setDetailCache({});
+        setTrainingSession(null);
+        setTrainingDecisionState(null);
+        setTrainingCoordination(null);
+        setTrainingLearningSummary([]);
       })
       .catch((err) => {
         if (!cancelled) setError((err as Error).message);
@@ -257,6 +343,11 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
     window.addEventListener('popstate', syncWithHash);
     return () => window.removeEventListener('popstate', syncWithHash);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    return scheduleScrollWorkspaceToTop(document, window);
+  }, [selectedAreaKey]);
 
   useEffect(() => {
     if (!familyId || !selectedAreaKey) return;
@@ -414,6 +505,78 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
       setError((err as Error).message);
     } finally {
       setRemindingTaskId(null);
+    }
+  };
+
+  const startTrainingSession = async () => {
+    if (!familyId) return;
+    setSessionBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const response = await startTrainingSessionV3(token, {
+        family_id: familyId,
+        extra_context: '',
+        ingestion_ids: []
+      });
+      setDashboard(response.dashboard);
+      setTrainingSession(response.session);
+      setTrainingDecisionState(response.decision_state);
+      setTrainingCoordination(response.coordination);
+      setTrainingLearningSummary([]);
+      setNotice('已启动会话式训练支持，系统会跟着今天状态一起调整。');
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSessionBusy(false);
+    }
+  };
+
+  const pushTrainingSessionEvent = async (
+    eventKind: 'status_check' | 'request_lighter' | 'no_improvement' | 'caregiver_overloaded',
+    rawText: string
+  ) => {
+    if (!trainingSession) return;
+    setSessionBusy(true);
+    setError('');
+    try {
+      const response = await addTrainingSessionEventV3(token, trainingSession.session_id, {
+        source_type: 'user_action',
+        event_kind: eventKind,
+        raw_text: rawText
+      });
+      setDashboard(response.dashboard);
+      setTrainingSession(response.session);
+      setTrainingDecisionState(response.decision_state);
+      setTrainingCoordination(response.coordination);
+      if (response.replanned) {
+        setNotice(`训练支持已调整：${response.changed_fields.join(' / ') || '已切换到更适合当前状态的方案'}`);
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSessionBusy(false);
+    }
+  };
+
+  const closeTrainingSession = async (effectiveness: 'helpful' | 'somewhat' | 'not_helpful') => {
+    if (!trainingSession) return;
+    setSessionBusy(true);
+    setError('');
+    try {
+      const response = await closeTrainingSessionV3(token, trainingSession.session_id, {
+        effectiveness,
+        notes: ''
+      });
+      setDashboard(response.dashboard);
+      setTrainingSession(response.session);
+      setTrainingDecisionState(response.decision_state);
+      setTrainingLearningSummary(response.learning_summary);
+      setNotice('训练支持会话已结束，系统已记住这次更有效的减负方式。');
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSessionBusy(false);
     }
   };
 
@@ -616,7 +779,8 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
                           weekly_sessions_count: selectedDetail.progress.weekly_sessions_count,
                           has_today_task: Boolean(selectedTask),
                           current_status: '',
-                          improvement_value: ''
+                          improvement_value: '',
+                          coordination_hint: ''
                         },
                         selectedDetail
                       )}
@@ -651,6 +815,15 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
                       <li key={item}>{item}</li>
                     ))}
                   </ul>
+
+                  <p className="label">系统当前重点关注</p>
+                  <div className="training-pill-row">
+                    {selectedDetail.current_risks.map((item) => (
+                      <span key={item} className="training-pill strong">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
 
                   <p className="label">当前家长最常遇到的卡点</p>
                   <div className="training-pill-row">
@@ -802,6 +975,60 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
                   </div>
                 </section>
               </div>
+
+              <div className="training-detail-grid">
+                <section className="panel">
+                  <p className="eyebrow">系统学到了什么</p>
+                  {selectedDetail.adjustment_logs.length ? (
+                    <div className="training-history-grid balanced-card-grid cols-3">
+                      {selectedDetail.adjustment_logs.slice(0, 3).map((item) => {
+                        const delta = summarizeAdjustmentDelta(item);
+                        return (
+                          <article key={item.adjustment_id} className="training-history-card">
+                            <strong>{item.title}</strong>
+                            <p>{item.summary}</p>
+                            <div className="training-pill-row">
+                              <span className="training-pill">阶段：{delta.stage}</span>
+                              <span className="training-pill">难度：{delta.difficulty}</span>
+                            </div>
+                            <p className="muted">
+                              触发：{obstacleLabel[item.trigger as keyof typeof obstacleLabel] ?? item.trigger} · {formatDateTime(item.created_at)}
+                            </p>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="muted">还没有形成自动调整记录。完成 1-2 次训练反馈后，这里会显示系统如何改变阶段和难度。</p>
+                  )}
+                </section>
+
+                <section className="panel">
+                  <p className="eyebrow">最近训练反馈</p>
+                  {selectedDetail.recent_feedbacks.length ? (
+                    <div className="training-history-grid balanced-card-grid cols-3">
+                      {selectedDetail.recent_feedbacks.slice(0, 3).map((item) => (
+                        <article key={item.feedback_id} className="training-history-card">
+                          <strong>{item.task_title}</strong>
+                          <div className="training-pill-row">
+                            <span className={`training-history-status ${item.completion_status}`}>
+                              {statusLabel[item.completion_status]}
+                            </span>
+                            <span className="training-pill">孩子：{cooperationLabel[item.child_response]}</span>
+                            <span className="training-pill">效果：{helpfulnessLabel[item.helpfulness]}</span>
+                          </div>
+                          <p className="muted">
+                            障碍：{obstacleLabel[item.obstacle_tag]} · 家长把握 {Math.round(item.parent_confidence * 10)}%
+                          </p>
+                          {item.notes ? <p>{item.notes}</p> : <p className="muted">这次没有补充备注。</p>}
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="muted">还没有训练反馈。提交今天的训练结果后，这里会开始累计家庭自己的学习证据。</p>
+                  )}
+                </section>
+              </div>
             </>
           )}
         </section>
@@ -809,9 +1036,9 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
         {activePlanEntry ? (
           <div className="modal-shell" role="dialog" aria-modal="true" aria-labelledby="training-plan-entry-title">
             <div className="modal-backdrop" onClick={() => setActivePlanEntryId(null)} />
-            <div className="modal-card training-plan-modal">
+            <div className="modal-card modal-card-fixed-close training-plan-modal">
               <button
-                className="icon-btn"
+                className="icon-btn modal-close-fixed"
                 type="button"
                 onClick={() => setActivePlanEntryId(null)}
                 aria-label="关闭训练计划详情"
@@ -819,51 +1046,53 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
                 ×
               </button>
 
-              <div className="training-plan-modal-shell">
-                <div className="focus-header">
-                  <div>
-                    <p className="eyebrow">训练日期详情</p>
-                    <h3 id="training-plan-entry-title">{activePlanEntry.title}</h3>
-                    <p className="muted">{formatShortDate(activePlanEntry.date)}</p>
-                  </div>
-                  <span className="training-pill strong">{activePlanEntry.training_scene}</span>
-                </div>
-
-                <article className="training-goal-card">
-                  <strong>今天重点</strong>
-                  <p>{activePlanEntry.focus}</p>
-                  <p className="muted">预期效果：{activePlanEntry.expected_effect}</p>
-                </article>
-
-                <div className="training-detail-stack">
-                  <div>
-                    <p className="label">家长怎么做</p>
-                    <ol className="list compact-list">
-                      {activePlanEntry.steps.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ol>
-                  </div>
-                  <div>
-                    <p className="label">建议话术</p>
-                    <blockquote className="quote-box">“{activePlanEntry.parent_script}”</blockquote>
-                  </div>
-                  {activePlanEntry.materials.length ? (
+              <div className="modal-scroll-area">
+                <div className="training-plan-modal-shell">
+                  <div className="focus-header">
                     <div>
-                      <p className="label">准备物</p>
-                      <div className="training-pill-row">
-                        {activePlanEntry.materials.map((item) => (
-                          <span key={item} className="training-pill">
-                            {item}
-                          </span>
-                        ))}
-                      </div>
+                      <p className="eyebrow">训练日期详情</p>
+                      <h3 id="training-plan-entry-title">{activePlanEntry.title}</h3>
+                      <p className="muted">{formatShortDate(activePlanEntry.date)}</p>
                     </div>
-                  ) : null}
-                  <div>
-                    <p className="label">如果抗拒</p>
-                    <p>{activePlanEntry.fallback_plan}</p>
-                    <p className="muted">执行提醒：{activePlanEntry.coaching_tip}</p>
+                    <span className="training-pill strong">{activePlanEntry.training_scene}</span>
+                  </div>
+
+                  <article className="training-goal-card">
+                    <strong>今天重点</strong>
+                    <p>{activePlanEntry.focus}</p>
+                    <p className="muted">预期效果：{activePlanEntry.expected_effect}</p>
+                  </article>
+
+                  <div className="training-detail-stack">
+                    <div>
+                      <p className="label">家长怎么做</p>
+                      <ol className="list compact-list">
+                        {activePlanEntry.steps.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ol>
+                    </div>
+                    <div>
+                      <p className="label">建议话术</p>
+                      <blockquote className="quote-box">“{activePlanEntry.parent_script}”</blockquote>
+                    </div>
+                    {activePlanEntry.materials.length ? (
+                      <div>
+                        <p className="label">准备物</p>
+                        <div className="training-pill-row">
+                          {activePlanEntry.materials.map((item) => (
+                            <span key={item} className="training-pill">
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                    <div>
+                      <p className="label">如果抗拒</p>
+                      <p>{activePlanEntry.fallback_plan}</p>
+                      <p className="muted">执行提醒：{activePlanEntry.coaching_tip}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -882,7 +1111,14 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
     <div className="grid">
       {notice ? <div className="panel review-notice">{notice}</div> : null}
       {dashboard?.safety_alert ? <div className="panel error">{dashboard.safety_alert}</div> : null}
-
+      {dashboard ? (
+        <div className={`panel ${readinessClassName[dashboard.summary.readiness_status]}`}>
+          <p className="eyebrow">训练协调判断</p>
+          <h3>{readinessLabel[dashboard.summary.readiness_status]}</h3>
+          <p>{dashboard.summary.readiness_reason}</p>
+          <p className="muted">现在建议：{dashboard.summary.recommended_action}</p>
+        </div>
+      ) : null}
       {dashboard ? (
         <>
           <section className="panel training-summary-panel">
@@ -894,7 +1130,7 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
               </div>
             </div>
 
-            <div className="training-priority-grid training-priority-grid-spotlight">
+            <div className="training-priority-grid training-priority-grid-spotlight balanced-card-grid cols-3">
               {dashboard.priority_domains.map((item, index) => {
                 const detail = detailCache[item.area_key];
                 const progressPercent = computeDomainProgressPercent(item, detail);
@@ -911,6 +1147,7 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
                     </div>
 
                     <p>{item.recommended_reason}</p>
+                    {item.coordination_hint ? <p className="muted">协调提示：{item.coordination_hint}</p> : null}
 
                     <div className="training-pill-row">
                       <span className="training-pill">阶段：{stageLabel[item.current_stage]}</span>
@@ -1019,6 +1256,23 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
                   <strong>系统识别到的当前有效方法</strong>
                   <p>{dashboard.progress_overview.best_method_summary}</p>
                 </div>
+
+                {dashboard.method_insights.length ? (
+                  <div className="training-detail-stack">
+                    <p className="label">最近学到的有效做法</p>
+                    <div className="training-history-grid balanced-card-grid cols-3">
+                      {dashboard.method_insights.map((item) => (
+                        <article key={item.title} className="training-history-card">
+                          <strong>{item.title}</strong>
+                          <p>{item.summary}</p>
+                          <p className="muted">
+                            家庭内证据 {item.evidence_count} 次 · 有效率 {item.effectiveness_score}%
+                          </p>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </aside>
             </div>
           </section>
@@ -1055,6 +1309,9 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
                           <article className="training-goal-card">
                             <strong>今天的目标</strong>
                             <p>{task.today_goal}</p>
+                            <p className="muted">
+                              {coordinationModeLabel[task.coordination_mode]}：{task.why_today || dashboard.summary.readiness_reason}
+                            </p>
                           </article>
 
                           <div className="training-meta-block">
@@ -1075,6 +1332,7 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
                         <div className="training-detail-stack">
                           <div className="training-pill-row">
                             <span className="training-pill">训练场景：{task.training_scene}</span>
+                            <span className="training-pill strong">{coordinationModeLabel[task.coordination_mode]}</span>
                             {task.reminder_status !== 'none' ? (
                               <span className="training-pill strong">
                                 {task.reminder_status === 'due' ? '提醒已到' : '已提醒'}
@@ -1132,7 +1390,11 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
                 })}
               </div>
             ) : (
-              <p className="muted">今天还没有生成训练任务，点上方“重新评估计划”后会自动刷新。</p>
+              <div className="training-goal-card">
+                <strong>{readinessLabel[dashboard.summary.readiness_status]}</strong>
+                <p>{dashboard.summary.readiness_reason}</p>
+                <p className="muted">现在建议：{dashboard.summary.recommended_action}</p>
+              </div>
             )}
           </section>
 
@@ -1165,13 +1427,187 @@ export function TrainingPlanWorkspace({ token, familyId, onNavigate, onActionCon
           </section>
 
           <section className="panel">
+            <div className="training-section-head">
+              <div>
+                <p className="eyebrow">会话式训练支持</p>
+                <h3>让训练跟着今天的状态一起调整</h3>
+                <p className="muted">这不是重新生成一整页计划，而是保留骨架、按你和孩子的状态做差量调整。</p>
+              </div>
+            </div>
+
+            {trainingSession && trainingDecisionState && trainingCoordination ? (
+              <div className="training-detail-stack">
+                <article className="training-goal-card">
+                  <strong>
+                    当前模式：{coordinationModeLabel[trainingCoordination.active_mode === 'blocked' ? 'pause' : trainingCoordination.active_mode]}
+                  </strong>
+                  <p>{trainingCoordination.summary}</p>
+                  <p className="muted">
+                    会话版本 {trainingSession.current_state_version} · {trainingSession.next_check_in_hint}
+                  </p>
+                </article>
+
+                <div className="training-task-main-grid">
+                  <article className="training-goal-card">
+                    <strong>现在先做这一步</strong>
+                    <p>{trainingCoordination.now_step}</p>
+                    <p className="muted">为什么这样调：{trainingCoordination.decision_reason}</p>
+                  </article>
+
+                  <article className="training-goal-card">
+                    <strong>现在怎么说</strong>
+                    <blockquote className="quote-box">“{trainingCoordination.now_script}”</blockquote>
+                    <p className="muted">如果还不行：{trainingCoordination.next_if_not_working}</p>
+                  </article>
+                </div>
+
+                {trainingDecisionState.used_memory_signals.length ? (
+                  <div className="training-pill-row">
+                    {trainingDecisionState.used_memory_signals.map((item) => (
+                      <span key={item} className="training-pill">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+
+                <div className="training-task-main-grid">
+                  <article className="training-goal-card">
+                    <strong>系统当前判断</strong>
+                    <ul className="list compact-list">
+                      <li>
+                        风险：
+                        {trainingDecisionState.risk_assessment
+                          ? riskLevelLabel[trainingDecisionState.risk_assessment.risk_level]
+                          : '未触发单独风险判断'}
+                      </li>
+                      <li>
+                        孩子状态：
+                        {trainingDecisionState.emotion_assessment
+                          ? `${emotionLabel[trainingDecisionState.emotion_assessment.child_emotion]} / 过载 ${overloadLevelLabel[trainingDecisionState.emotion_assessment.child_overload_level]}`
+                          : '未标注'}
+                      </li>
+                      <li>
+                        家长状态：
+                        {trainingDecisionState.emotion_assessment
+                          ? `${emotionLabel[trainingDecisionState.emotion_assessment.caregiver_emotion]} / 过载 ${overloadLevelLabel[trainingDecisionState.emotion_assessment.caregiver_overload_level]}`
+                          : '未标注'}
+                      </li>
+                    </ul>
+                  </article>
+
+                  <article className="training-goal-card">
+                    <strong>为什么今天这样安排</strong>
+                    <ul className="list compact-list">
+                      {trainingCoordination.weight_summary.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                      {!trainingCoordination.weight_summary.length ? <li>{trainingCoordination.decision_reason}</li> : null}
+                    </ul>
+                    {trainingCoordination.replan_triggers.length ? (
+                      <p className="muted">下次触发重规划：{trainingCoordination.replan_triggers.join('、')}</p>
+                    ) : null}
+                  </article>
+                </div>
+
+                {trainingDecisionState.context_signals.length ? (
+                  <article className="training-goal-card">
+                    <strong>这次参考了哪些现场信号</strong>
+                    <div className="training-pill-row">
+                      {trainingDecisionState.context_signals.slice(0, 6).map((item) => (
+                        <span key={`${item.signal_key}-${item.signal_value}`} className="training-pill">
+                          {item.signal_label}：{item.signal_value}
+                        </span>
+                      ))}
+                    </div>
+                  </article>
+                ) : null}
+
+                {recentAdaptations.length ? (
+                  <article className="training-goal-card">
+                    <strong>最近几次为什么会调整</strong>
+                    <ul className="list compact-list">
+                      {recentAdaptations.map((item, index) => (
+                        <li key={`${item}-${index}`}>{item}</li>
+                      ))}
+                    </ul>
+                  </article>
+                ) : null}
+
+                <div className="focus-actions">
+                  <button className="btn" type="button" disabled={sessionBusy} onClick={() => pushTrainingSessionEvent('status_check', '先按这个方案继续。')}>
+                    {sessionBusy ? '处理中...' : '继续这个方案'}
+                  </button>
+                  <button
+                    className="btn secondary"
+                    type="button"
+                    disabled={sessionBusy}
+                    onClick={() => pushTrainingSessionEvent('request_lighter', '今天想再轻一点。')}
+                  >
+                    换更轻的
+                  </button>
+                  <button
+                    className="btn secondary"
+                    type="button"
+                    disabled={sessionBusy}
+                    onClick={() => pushTrainingSessionEvent('no_improvement', '照着做了，但现在还是没改善。')}
+                  >
+                    状态没改善
+                  </button>
+                  <button
+                    className="btn secondary"
+                    type="button"
+                    disabled={sessionBusy}
+                    onClick={() => pushTrainingSessionEvent('caregiver_overloaded', '我现在更累了，想减负。')}
+                  >
+                    我太累了
+                  </button>
+                </div>
+
+                <div className="training-quick-actions">
+                  <button className="btn secondary" type="button" disabled={sessionBusy} onClick={() => closeTrainingSession('helpful')}>
+                    这次有帮助
+                  </button>
+                  <button className="btn secondary" type="button" disabled={sessionBusy} onClick={() => closeTrainingSession('somewhat')}>
+                    一般
+                  </button>
+                  <button className="btn secondary" type="button" disabled={sessionBusy} onClick={() => closeTrainingSession('not_helpful')}>
+                    没帮助
+                  </button>
+                </div>
+
+                {trainingLearningSummary.length ? (
+                  <article className="training-goal-card">
+                    <strong>这次学到了什么</strong>
+                    <ul className="list compact-list">
+                      {trainingLearningSummary.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </article>
+                ) : null}
+              </div>
+            ) : (
+              <div className="focus-actions">
+                <button className="btn" type="button" disabled={sessionBusy} onClick={startTrainingSession}>
+                  {sessionBusy ? '启动中...' : '启动会话式训练支持'}
+                </button>
+              </div>
+            )}
+          </section>
+
+          <section className="panel">
             <p className="eyebrow">动态调整记录</p>
             {dashboard.recent_adjustments.length ? (
-              <div className="training-history-grid">
+              <div className="training-history-grid balanced-card-grid cols-3">
                 {dashboard.recent_adjustments.map((item) => (
                   <article key={item.adjustment_id} className="training-history-card">
                     <strong>{item.title}</strong>
                     <p>{item.summary}</p>
+                    <div className="training-pill-row">
+                      <span className="training-pill">阶段：{summarizeAdjustmentDelta(item).stage}</span>
+                      <span className="training-pill">难度：{summarizeAdjustmentDelta(item).difficulty}</span>
+                    </div>
                     <p className="muted">
                       触发：{obstacleLabel[item.trigger as keyof typeof obstacleLabel] ?? item.trigger} · {formatDateTime(item.created_at)}
                     </p>
